@@ -30,6 +30,9 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
     devDependencies:
+      '@iconify-json/tabler':
+        specifier: ^1.2.25
+        version: 1.2.25
       '@unocss/preset-icons':
         specifier: ^66.5.10
         version: 66.5.10
@@ -346,6 +349,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@iconify-json/tabler@1.2.25':
+    resolution: {integrity: sha512-yU0aipjN4moGTqeCbdA9m7Wl7CZ9PUqnlwQXng/iGXod43FiSZHNUyMbc1+mu0cR8BV7gf8rkQZJy+as8gWAEw==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -2439,6 +2445,10 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.12':
     optional: true
+
+  '@iconify-json/tabler@1.2.25':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify/types@2.0.0': {}
 
