@@ -1,13 +1,13 @@
 // @ts-check
 
 import react from '@astrojs/react';
-import { defineConfig } from 'astro/config';
-import UnoCSS from 'unocss/vite';
+import {defineConfig} from 'astro/config';
+import unoCSS from 'unocss/vite';
 import mdx from '@astrojs/mdx';
 import expressiveCode from 'astro-expressive-code';
-import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
+import {pluginLineNumbers} from '@expressive-code/plugin-line-numbers';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import {rehypeHeadingIds} from '@astrojs/markdown-remark';
 
 export default defineConfig({
   // Heading IDs + anchor links for both .md and .mdx
@@ -52,6 +52,6 @@ export default defineConfig({
   ],
 
   vite: {
-    plugins: [UnoCSS()],
+    plugins: [unoCSS()],
   },
 });

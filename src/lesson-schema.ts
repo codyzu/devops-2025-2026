@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import {z} from 'astro:content';
 
 export const lessonContentSchema = z.object({
   title: z.string(),
@@ -13,4 +13,3 @@ export const lessonDataSchema = z.object({
 });
 
 export type LessonData = z.infer<typeof lessonDataSchema>;
-

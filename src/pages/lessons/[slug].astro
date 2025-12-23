@@ -1,21 +1,21 @@
 ---
-import PageLayout from "../../layouts/PageLayout.astro";
-import { getCollection, render } from "astro:content";
+import {getCollection, render} from 'astro:content';
+import PageLayout from '../../layouts/PageLayout.astro';
 
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
-  const lessons = await getCollection("lessons");
+  const lessons = await getCollection('lessons');
   return lessons
     .filter((lesson) => lesson.data.published)
     .map((lesson) => ({
-      params: { slug: lesson.id },
-      props: { lesson },
+      params: {slug: lesson.id},
+      props: {lesson},
     }));
 }
 
 // 2. For your template, you can get the entry directly from the prop
-const { lesson } = Astro.props;
-const { Content } = await render(lesson);
+const {lesson} = Astro.props;
+const {Content} = await render(lesson);
 ---
 
 <PageLayout title={lesson.data.title}>
@@ -31,7 +31,7 @@ const { Content } = await render(lesson);
     }
 
     .lesson :global(h2)::before {
-      content: "Step " counter(step) ": ";
+      content: 'Step ' counter(step) ': ';
       font-weight: 700;
       margin-right: 0.35rem;
     }
@@ -41,7 +41,7 @@ const { Content } = await render(lesson);
     }
 
     .lesson :global(h3)::before {
-      content: counter(step) "." counter(substep) " ";
+      content: counter(step) '.' counter(substep) ' ';
       font-weight: 700;
       margin-right: 0.35rem;
     }

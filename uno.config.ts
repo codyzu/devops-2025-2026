@@ -9,7 +9,6 @@ import {
 } from 'unocss';
 
 export default defineConfig({
-  
   presets: [
     presetWind4(),
     presetTypography(),
@@ -31,6 +30,6 @@ export default defineConfig({
 
   safelist: [
     // Used for link icons in markdown (see astro.config.mjs)
-    'i-tabler-link'
+    'i-tabler-link',
   ],
 });

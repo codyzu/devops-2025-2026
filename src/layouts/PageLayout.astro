@@ -1,13 +1,13 @@
 ---
-import "@unocss/reset/tailwind.css";
-import "uno.css";
-import "./index.css";
+import '@unocss/reset/tailwind.css';
+import 'uno.css';
+import './index.css';
 
 interface Props {
   title: string;
 }
 
-const { title } = Astro.props;
+const {title} = Astro.props;
 ---
 
 <html lang="en">
@@ -16,7 +16,7 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title ?? "RES507"}</title>
+    <title>{title ?? 'RES507'}</title>
   </head>
   <body>
     <slot />

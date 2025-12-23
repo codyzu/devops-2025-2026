@@ -1,18 +1,18 @@
 ---
-import PageLayout from "../layouts/PageLayout.astro";
-import { getCollection } from "astro:content";
-import LessonList from "../components/LessonList.tsx";
+import {getCollection} from 'astro:content';
+import PageLayout from '../layouts/PageLayout.astro';
+import LessonList from '../components/LessonList.tsx';
 
-const lessons = await getCollection("lessons");
+const lessons = await getCollection('lessons');
 
 const lessonData = lessons
-	.filter((lesson) => lesson.data.published)
-	.map((lesson) => ({ ...lesson.data, id: lesson.id }));
+  .filter((lesson) => lesson.data.published)
+  .map((lesson) => ({...lesson.data, id: lesson.id}));
 ---
 
 <PageLayout title="All Lessons">
-	<main class="p-4">
-		<h1 class="text-3xl font-bold mb-6">Lessons</h1>
-		<LessonList lessons={lessonData} client:load />
-	</main>
+  <main class="p-4">
+    <h1 class="text-3xl font-bold mb-6">Lessons</h1>
+    <LessonList client:load lessons={lessonData} />
+  </main>
 </PageLayout>
