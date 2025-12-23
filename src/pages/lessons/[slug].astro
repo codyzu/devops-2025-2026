@@ -51,6 +51,19 @@ const { Content } = await render(lesson);
     .lesson :global(h3) {
       scroll-margin-top: 96px;
     }
+
+    /* Heading anchor links (rehype-autolink-headings) */
+    .lesson :global(.heading-anchor) {
+      opacity: 0;
+      margin-left: 0.5rem;
+      text-decoration: none;
+      font-weight: normal;
+    }
+
+    .lesson :global(h2:hover .heading-anchor),
+    .lesson :global(h3:hover .heading-anchor) {
+      opacity: 1;
+    }
   </style>
   <article class="prose dark:prose-invert p-4 lesson">
     <h1>{lesson.data.title}</h1>
