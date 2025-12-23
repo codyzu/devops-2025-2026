@@ -19,7 +19,40 @@ const { Content } = await render(lesson);
 ---
 
 <PageLayout title={lesson.data.title}>
-  <article class="prose dark:prose-invert p-4">
+  <style>
+    /* 2-level lab counters */
+    .lesson {
+      counter-reset: step;
+    }
+
+    .lesson :global(h2) {
+      counter-increment: step;
+      counter-reset: substep;
+    }
+
+    .lesson :global(h2)::before {
+      content: "Step " counter(step) ": ";
+      font-weight: 700;
+      margin-right: 0.35rem;
+    }
+
+    .lesson :global(h3) {
+      counter-increment: substep;
+    }
+
+    .lesson :global(h3)::before {
+      content: counter(step) "." counter(substep) " ";
+      font-weight: 700;
+      margin-right: 0.35rem;
+    }
+
+    /* Nice anchor jump behavior */
+    .lesson :global(h2),
+    .lesson :global(h3) {
+      scroll-margin-top: 96px;
+    }
+  </style>
+  <article class="prose dark:prose-invert p-4 lesson">
     <h1>{lesson.data.title}</h1>
     <p>{lesson.data.description}</p>
     <Content />
