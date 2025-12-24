@@ -1,6 +1,6 @@
 ---
 import type {MarkdownLayoutProps} from 'astro';
-import PageLayout from './PageLayout.astro';
+import ArticleWithTitleLayout from './ArticleWithTitleLayout.astro';
 
 type Props = MarkdownLayoutProps<{
   // Define frontmatter props here
@@ -11,10 +11,9 @@ type Props = MarkdownLayoutProps<{
 const {frontmatter} = Astro.props;
 ---
 
-<PageLayout title={frontmatter.title}>
-  <article class="prose dark:prose-invert p-4">
-    <h1>{frontmatter.title}</h1>
-    <p>{frontmatter.description}</p>
-    <slot />
-  </article>
-</PageLayout>
+<ArticleWithTitleLayout
+  title={frontmatter.title}
+  description={frontmatter.description}
+>
+  <slot />
+</ArticleWithTitleLayout>

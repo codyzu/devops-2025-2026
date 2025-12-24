@@ -1,7 +1,7 @@
 ---
 import {getCollection} from 'astro:content';
-import PageLayout from '../layouts/PageLayout.astro';
 import LessonList from '../components/LessonList.tsx';
+import ArticleWithTitleLayout from '../layouts/ArticleWithTitleLayout.astro';
 
 const lessons = await getCollection('lessons');
 
@@ -10,9 +10,9 @@ const lessonData = lessons
   .map((lesson) => ({...lesson.data, id: lesson.id}));
 ---
 
-<PageLayout title="All Lessons">
-  <main class="p-4">
-    <h1 class="text-3xl font-bold mb-6">Lessons</h1>
-    <LessonList client:load lessons={lessonData} />
-  </main>
-</PageLayout>
+<ArticleWithTitleLayout
+  title="All Lessons"
+  description="Browse all available lessons below."
+>
+  <LessonList client:load lessons={lessonData} />
+</ArticleWithTitleLayout>

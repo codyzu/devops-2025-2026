@@ -5,3 +5,7 @@ body {
 div {
   --uno: flex flex-col;
 }
+
+a :hover {
+  --uno: text-green-600 underline;
+}

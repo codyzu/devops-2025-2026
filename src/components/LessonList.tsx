@@ -8,18 +8,17 @@ export default function LessonList({
   const now = new Date();
 
   return (
-    <ul className="space-y-4">
+    <ul className="">
       {lessons
         .filter((lesson) => (lesson.availableFrom ?? now) <= now)
         .map((lesson) => (
           <li key={lesson.id}>
-            <a
-              href={`/lessons/${lesson.id}`}
-              className="text-xl text-blue-600 hover:underline"
-            >
-              {lesson.title}
-            </a>
-            <p className="text-gray-600">{lesson.description}</p>
+            <h2>
+              <a href={`/lessons/${lesson.id}`} className="">
+                {lesson.title}
+              </a>
+            </h2>
+            <p className="">{lesson.description}</p>
           </li>
         ))}
     </ul>

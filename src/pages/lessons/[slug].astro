@@ -1,11 +1,12 @@
 ---
 import {getCollection, render} from 'astro:content';
-import PageLayout from '../../layouts/PageLayout.astro';
+import ArticleWithTitleLayout from '../../layouts/ArticleWithTitleLayout.astro';
 
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons');
   return lessons
+    .toSorted((a, b) => a.id.localeCompare(b.id))
     .filter((lesson) => lesson.data.published)
     .map((lesson) => ({
       params: {slug: lesson.id},
@@ -18,56 +19,57 @@ const {lesson} = Astro.props;
 const {Content} = await render(lesson);
 ---
 
-<PageLayout title={lesson.data.title}>
-  <style>
-    /* 2-level lab counters */
-    .lesson {
-      counter-reset: step;
-    }
+<style>
+  /* 2-level lab counters */
+  .lesson {
+    counter-reset: step;
+  }
 
-    .lesson :global(h2) {
-      counter-increment: step;
-      counter-reset: substep;
-    }
+  .lesson :global(h2) {
+    counter-increment: step;
+    counter-reset: substep;
+  }
 
-    .lesson :global(h2)::before {
-      content: 'Step ' counter(step) ': ';
-      font-weight: 700;
-      margin-right: 0.35rem;
-    }
+  .lesson :global(h2)::before {
+    content: 'Step ' counter(step) ': ';
+    font-weight: 700;
+    margin-right: 0.35rem;
+  }
 
-    .lesson :global(h3) {
-      counter-increment: substep;
-    }
+  .lesson :global(h3) {
+    counter-increment: substep;
+  }
 
-    .lesson :global(h3)::before {
-      content: counter(step) '.' counter(substep) ' ';
-      font-weight: 700;
-      margin-right: 0.35rem;
-    }
+  .lesson :global(h3)::before {
+    content: counter(step) '.' counter(substep) ' ';
+    font-weight: 700;
+    margin-right: 0.35rem;
+  }
 
-    /* Nice anchor jump behavior */
-    .lesson :global(h2),
-    .lesson :global(h3) {
-      scroll-margin-top: 96px;
-    }
+  /* Nice anchor jump behavior */
+  .lesson :global(h2),
+  .lesson :global(h3) {
+    scroll-margin-top: 96px;
+  }
 
-    /* Heading anchor links (rehype-autolink-headings) */
-    .lesson :global(.heading-anchor) {
-      opacity: 0;
-      margin-left: 0.5rem;
-      text-decoration: none;
-      font-weight: normal;
-    }
+  /* Heading anchor links (rehype-autolink-headings) */
+  .lesson :global(.heading-anchor) {
+    opacity: 0;
+    margin-left: 0.5rem;
+    text-decoration: none;
+    font-weight: normal;
+  }
 
-    .lesson :global(h2:hover .heading-anchor),
-    .lesson :global(h3:hover .heading-anchor) {
-      opacity: 1;
-    }
-  </style>
-  <article class="prose dark:prose-invert p-4 lesson">
-    <h1>{lesson.data.title}</h1>
-    <p>{lesson.data.description}</p>
+  .lesson :global(h2:hover .heading-anchor),
+  .lesson :global(h3:hover .heading-anchor) {
+    opacity: 1;
+  }
+</style>
+<ArticleWithTitleLayout
+  title={lesson.data.title}
+  description={lesson.data.description}
+>
+  <div class="lesson">
     <Content />
-  </article>
-</PageLayout>
+  </div>
+</ArticleWithTitleLayout>

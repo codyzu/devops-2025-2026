@@ -2,7 +2,7 @@ import {z} from 'astro:content';
 
 export const lessonContentSchema = z.object({
   title: z.string(),
-  description: z.string().optional(),
+  description: z.string(),
   availableFrom: z.coerce.date().optional(),
   published: z.boolean().default(true),
 });
