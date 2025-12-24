@@ -6,6 +6,8 @@ export default function LessonList({
   readonly lessons: LessonData[];
 }) {
   const now = new Date();
+  const baseUrl = import.meta.env.BASE_URL;
+  const basePath = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 
   return (
     <ul className="">
@@ -14,10 +16,7 @@ export default function LessonList({
         .map((lesson) => (
           <li key={lesson.id}>
             <h2>
-              <a
-                href={`${import.meta.env.BASE_URL}/lessons/${lesson.id}`}
-                className=""
-              >
+              <a href={`${basePath}lessons/${lesson.id}`} className="">
                 {lesson.title}
               </a>
             </h2>

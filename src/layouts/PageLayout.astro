@@ -1,6 +1,7 @@
 ---
 import '@unocss/reset/tailwind.css';
 import 'uno.css';
+import Logo from '../assets/logo2.svg';
 import './index.css';
 
 interface Props {
@@ -21,7 +22,7 @@ const base = import.meta.env.BASE_URL;
   </head>
   <body>
     <header
-      class="fixed top-0 left-0 right-0 h-14 border-b border-black/10 bg-white/90 backdrop-blur"
+      class="fixed top-0 left-0 right-0 z-50 h-14 border-b border-black/10 bg-white/70 backdrop-blur"
     >
       <nav
         class="h-full flex items-center px-4 font-600 tracking-wide text-xl"
@@ -29,7 +30,7 @@ const base = import.meta.env.BASE_URL;
       >
         <a href={base} class="" aria-label="Home">
           <div class="flex flex-row gap-2 items-center">
-            <span class="i-tabler-terminal-2"></span>
+            <Logo class="h-10 w-12" />
             <span>RES507</span>
           </div>
         </a>

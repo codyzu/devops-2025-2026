@@ -1,7 +1,9 @@
 ---
 import {getCollection} from 'astro:content';
+import {Picture} from 'astro:assets';
 import LessonList from '../components/LessonList.tsx';
-import ArticleWithTitleLayout from '../layouts/ArticleWithTitleLayout.astro';
+import heroImage from '../assets/hero.png';
+import PageLayout from '../layouts/PageLayout.astro';
 
 const lessons = await getCollection('lessons');
 
@@ -10,9 +12,26 @@ const lessonData = lessons
   .map((lesson) => ({...lesson.data, id: lesson.id}));
 ---
 
-<ArticleWithTitleLayout
-  title="All Lessons"
-  description="Browse all available lessons below."
->
-  <LessonList client:load lessons={lessonData} />
-</ArticleWithTitleLayout>
+<!-- description="Browse all available lessons below." -->
+<PageLayout title="All Lessons">
+  <div class="mt-4 mb-8 mx-4 mx-auto relative w-full max-w-4xl">
+    <Picture
+      src={heroImage}
+      formats={['avif', 'webp']}
+      alt="Hero Image"
+      class="rounded-lg"
+    />
+    <div
+      class="absolute top-8 left-12 inset-0 font-bold text-2xl sm:text-4xl flex flex-col items-start drop-shadow drop-shadow-black text-white"
+    >
+      <div>RES507 - 2025/2025</div>
+      <div>DevOps</div>
+    </div>
+  </div>
+  <article
+    class="prose prose-lg prose-green dark:prose-invert dark:bg-black p-4 mx-auto"
+  >
+    <h1>All Lessons</h1>
+    <LessonList client:load lessons={lessonData} />
+  </article>
+</PageLayout>
