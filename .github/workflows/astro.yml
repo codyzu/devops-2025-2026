@@ -50,6 +50,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
         working-directory: ${{ env.BUILD_PATH }}
+      - name: Lint with xo
+        run: pnpm run lint
+        working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
         run: |
           pnpm astro build \
