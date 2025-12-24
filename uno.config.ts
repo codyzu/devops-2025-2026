@@ -10,7 +10,9 @@ import {
 
 export default defineConfig({
   presets: [
-    presetWind4(),
+    presetWind4({
+      dark: 'media',
+    }),
     presetTypography(),
     presetIcons({
       scale: 1.2,
