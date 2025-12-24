@@ -15,7 +15,7 @@ export default function LessonList({
           <li key={lesson.id}>
             <h2>
               <a
-                href={`${import.meta.env.BASE_URL}lessons/${lesson.id}`}
+                href={`${import.meta.env.BASE_URL}/lessons/${lesson.id}`}
                 className=""
               >
                 {lesson.title}
