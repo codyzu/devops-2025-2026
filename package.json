@@ -2,6 +2,7 @@
   "name": "res507",
   "type": "module",
   "version": "0.0.1",
+  "author": "Cody Zuschlag",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -38,5 +39,6 @@
     "prettier-plugin-astro": "^0.14.1",
     "unocss": "^66.5.10",
     "xo": "^1.2.3"
-  }
+  },
+  "license": "MIT"
 }
