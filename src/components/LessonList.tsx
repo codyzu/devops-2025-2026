@@ -1,4 +1,5 @@
 import type {LessonData} from '../lesson-schema';
+import {withBase} from '../lib/paths';
 
 export default function LessonList({
   lessons,
@@ -6,9 +7,6 @@ export default function LessonList({
   readonly lessons: LessonData[];
 }) {
   const now = new Date();
-  const baseUrl = import.meta.env.BASE_URL;
-  const basePath = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-
   return (
     <ul className="">
       {lessons
@@ -16,7 +14,7 @@ export default function LessonList({
         .map((lesson) => (
           <li key={lesson.id}>
             <h2>
-              <a href={`${basePath}lessons/${lesson.id}`} className="">
+              <a href={withBase(`lessons/${lesson.id}`)} className="">
                 {lesson.title}
               </a>
             </h2>

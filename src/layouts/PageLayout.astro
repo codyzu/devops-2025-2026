@@ -2,6 +2,7 @@
 import '@unocss/reset/tailwind.css';
 import 'uno.css';
 import Logo from '../assets/logo.svg';
+import {withBase} from '../lib/paths';
 import './index.css';
 
 interface Props {
@@ -9,7 +10,6 @@ interface Props {
 }
 
 const {title} = Astro.props;
-const base = import.meta.env.BASE_URL;
 ---
 
 <html lang="en">
@@ -17,7 +17,7 @@ const base = import.meta.env.BASE_URL;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="icon" type="image/svg+xml" href={withBase('favicon.svg')} />
     <title>{title ?? 'RES507'}</title>
   </head>
   <body>
@@ -28,7 +28,7 @@ const base = import.meta.env.BASE_URL;
         class="h-full flex items-center px-4 font-600 tracking-wide text-xl"
         aria-label="Primary"
       >
-        <a href={base} class="" aria-label="Home">
+        <a href={withBase('')} class="" aria-label="Home">
           <div class="flex flex-row gap-2 items-center">
             <Logo class="h-10 w-12" />
             <span>RES507</span>
