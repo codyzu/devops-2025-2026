@@ -8,6 +8,7 @@ interface Props {
 }
 
 const {title} = Astro.props;
+const base = import.meta.env.BASE_URL;
 ---
 
 <html lang="en">
@@ -15,7 +16,7 @@ const {title} = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <title>{title ?? 'RES507'}</title>
   </head>
   <body>
@@ -26,7 +27,7 @@ const {title} = Astro.props;
         class="h-full flex items-center px-4 font-600 tracking-wide text-xl"
         aria-label="Primary"
       >
-        <a href="/" class="">
+        <a href={base} class="" aria-label="Home">
           <div class="flex flex-row gap-2 items-center">
             <span class="i-tabler-terminal-2"></span>
             <span>RES507</span>

@@ -14,7 +14,10 @@ export default function LessonList({
         .map((lesson) => (
           <li key={lesson.id}>
             <h2>
-              <a href={`/lessons/${lesson.id}`} className="">
+              <a
+                href={`${import.meta.env.BASE_URL}lessons/${lesson.id}`}
+                className=""
+              >
                 {lesson.title}
               </a>
             </h2>
