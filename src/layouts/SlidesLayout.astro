@@ -1,0 +1,43 @@
+---
+import 'reveal.js/dist/reveal.css';
+import 'reveal.js/dist/theme/black.css';
+import 'reveal.js/plugin/highlight/monokai.css';
+import Head from '../components/Head.astro';
+
+interface Props {
+  title: string;
+}
+
+const {title = 'Slides'} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <Head title={title} />
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <slot />
+      </div>
+    </div>
+
+    <script>
+      import Reveal from 'reveal.js';
+      import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js';
+      import Highlight from 'reveal.js/plugin/highlight/highlight.esm.js';
+      import Notes from 'reveal.js/plugin/notes/notes.esm.js';
+
+      const root = document.querySelector('.reveal');
+      if (!root) throw new Error('Reveal root element not found');
+
+      const deck = new Reveal(root, {
+        hash: true,
+        slideNumber: true,
+        plugins: [Markdown, Highlight, Notes],
+      });
+
+      await deck.initialize();
+    </script>
+  </body>
+</html>
