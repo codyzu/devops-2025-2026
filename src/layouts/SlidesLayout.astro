@@ -1,8 +1,9 @@
 ---
 import 'reveal.js/dist/reveal.css';
-import 'reveal.js/dist/theme/black.css';
 import 'reveal.js/plugin/highlight/monokai.css';
-import Head from '../components/Head.astro';
+// Ask Vite for the final built URLs:
+import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
+import HeadContent from '../components/HeadContent.astro';
 
 interface Props {
   title: string;
@@ -13,7 +14,10 @@ const {title = 'Slides'} = Astro.props;
 
 <!doctype html>
 <html lang="en">
-  <Head title={title} />
+  <head>
+    <HeadContent title={title} />
+    <link rel="stylesheet" href={whiteThemeUrl} id="reveal-theme" />
+  </head>
 
   <body>
     <div class="reveal">
@@ -27,6 +31,18 @@ const {title = 'Slides'} = Astro.props;
       import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js';
       import Highlight from 'reveal.js/plugin/highlight/highlight.esm.js';
       import Notes from 'reveal.js/plugin/notes/notes.esm.js';
+      import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
+      import blackThemeUrl from 'reveal.js/dist/theme/black.css?url';
+
+      const link = document.getElementById('reveal-theme') as HTMLLinkElement;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function applyTheme() {
+        link.href = prefersDark.matches ? blackThemeUrl : whiteThemeUrl;
+      }
+
+      applyTheme();
+      prefersDark.addEventListener('change', applyTheme);
 
       const root = document.querySelector('.reveal');
       if (!root) throw new Error('Reveal root element not found');

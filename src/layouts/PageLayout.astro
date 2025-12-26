@@ -1,7 +1,7 @@
 ---
 import '@unocss/reset/tailwind.css';
 import 'uno.css';
-import Head from '../components/Head.astro';
+import HeadContent from '../components/HeadContent.astro';
 import Logo from '../assets/logo.svg';
 import {withBase} from '../lib/paths';
 import './index.css';
@@ -14,7 +14,9 @@ const {title} = Astro.props;
 ---
 
 <html lang="en">
-  <Head title={title} />
+  <head>
+    <HeadContent title={title} />
+  </head>
   <body>
     <header
       class:list={[
