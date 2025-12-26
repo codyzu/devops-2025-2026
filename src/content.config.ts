@@ -1,9 +1,9 @@
-import {defineCollection, z} from 'astro:content';
+import {defineCollection} from 'astro:content';
 import {glob} from 'astro/loaders'; // Not available with legacy API
 import {lessonContentSchema} from './lesson-schema';
 
 const lessons = defineCollection({
-  loader: glob({pattern: '**/*.mdx', base: './src/lessons'}),
+  loader: glob({pattern: '**/*.{md,mdx}', base: './src/lessons'}),
   schema: lessonContentSchema,
 });
 

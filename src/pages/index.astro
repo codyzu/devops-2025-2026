@@ -8,6 +8,7 @@ import PageLayout from '../layouts/PageLayout.astro';
 const lessons = await getCollection('lessons');
 
 const lessonData = lessons
+  .toSorted((a, b) => a.id.localeCompare(b.id))
   .filter((lesson) => lesson.data.published)
   .map((lesson) => ({...lesson.data, id: lesson.id}));
 ---
