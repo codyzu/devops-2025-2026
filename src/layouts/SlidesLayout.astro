@@ -1,8 +1,6 @@
 ---
 import 'reveal.js/dist/reveal.css';
 import 'reveal.js/plugin/highlight/monokai.css';
-// Ask Vite for the final built URLs:
-import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
 import HeadContent from '../components/HeadContent.astro';
 
 interface Props {
@@ -16,10 +14,10 @@ const {title = 'Slides'} = Astro.props;
 <html lang="en">
   <head>
     <HeadContent title={title} />
-    <link rel="stylesheet" href={whiteThemeUrl} id="reveal-theme" />
   </head>
 
   <body>
+    <link rel="stylesheet" id="reveal-theme" />
     <div class="reveal">
       <div class="slides">
         <slot />
