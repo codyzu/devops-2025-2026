@@ -14,6 +14,13 @@ const {title = 'Slides'} = Astro.props;
 <html lang="en">
   <head>
     <HeadContent title={title} />
+    <style>
+      /* Hide heading autolink UI inside Reveal slides */
+      .reveal .slides :global(.heading-anchor),
+      .reveal .slides :global(.heading-anchor-icon) {
+        display: none;
+      }
+    </style>
   </head>
 
   <body>
