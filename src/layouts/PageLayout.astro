@@ -2,6 +2,7 @@
 import '@unocss/reset/tailwind.css';
 import 'uno.css';
 import HeadContent from '../components/HeadContent.astro';
+import Footer from '../components/Footer.astro';
 import Logo from '../assets/logo.svg';
 import {withBase} from '../lib/paths';
 import './index.css';
@@ -51,5 +52,6 @@ const {title} = Astro.props;
     <main class="pt-18">
       <slot />
     </main>
+    <Footer />
   </body>
 </html>

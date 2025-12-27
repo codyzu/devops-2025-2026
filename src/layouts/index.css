@@ -6,6 +6,6 @@ div {
   --uno: flex flex-col;
 }
 
-a :hover {
+a:hover {
   --uno: text-green-600 underline;
 }
