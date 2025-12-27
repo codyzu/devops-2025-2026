@@ -4,7 +4,7 @@ import Icon from './Icon.astro';
 
 <footer
   class:list={[
-    'fixed bottom-0 left-50% translate-x--50% h-auto z-50 py-1 px-2',
+    'fixed bottom-0 left-1/2 -translate-x-1/2 h-auto z-50 py-1 px-2 w-max max-w-[calc(100vw-1rem)]',
     'rounded-full mb-1',
     'bg-white/60 dark:bg-black/50',
     'border border-black/10 dark:border-white/15',
@@ -12,9 +12,12 @@ import Icon from './Icon.astro';
     'text-xs',
   ]}
 >
-  <a href="https://github.com/codyzu/devops-2025-2026">
+  <a
+    href="https://github.com/codyzu/devops-2025-2026"
+    class="inline-flex items-center justify-center gap-1 flex-wrap text-center"
+  >
     built with <Icon name="i-tabler-heart text-red-500" /> by Cody Zuschlag, hosted
     on
-    <Icon name="i-tabler-brand-github" /></a
-  >
+    <Icon name="i-tabler-brand-github" />
+  </a>
 </footer>
