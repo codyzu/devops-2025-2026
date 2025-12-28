@@ -17,12 +17,15 @@ const {title = 'Slides'} = Astro.props;
   <head>
     <HeadContent title={title} />
     <style>
-      /* Hide heading autolink UI inside Reveal slides */
+      /* Hide heading autolink UI from mdx inside Reveal slides */
       .reveal .slides :global(.heading-anchor),
       .reveal .slides :global(.heading-anchor-icon) {
         display: none;
       }
 
+      /* Reveal doesn't handle theme switches very well */
+      /* On iOS, the background color doesn't update properly */
+      /* This fixes the wrong background color */
       body.reveal-scroll .reveal .slides :global(.scroll-page) {
         background: var(--r-background-color) !important;
       }
