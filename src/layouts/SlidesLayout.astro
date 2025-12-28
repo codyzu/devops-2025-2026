@@ -22,6 +22,10 @@ const {title = 'Slides'} = Astro.props;
       .reveal .slides :global(.heading-anchor-icon) {
         display: none;
       }
+
+      body.reveal-scroll .reveal .slides :global(.scroll-page) {
+        background: var(--r-background-color) !important;
+      }
     </style>
 
     <link rel="stylesheet" href={revealCss} />
