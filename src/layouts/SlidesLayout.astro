@@ -1,7 +1,6 @@
 ---
 import 'uno.css';
 import revealCss from 'reveal.js/dist/reveal.css?url';
-import revealHighlight from 'reveal.js/plugin/highlight/monokai.css?url';
 import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
 import blackThemeUrl from 'reveal.js/dist/theme/black.css?url';
 import HeadContent from '../components/HeadContent.astro';
@@ -26,7 +25,6 @@ const {title = 'Slides'} = Astro.props;
     </style>
 
     <link rel="stylesheet" href={revealCss} />
-    <link rel="stylesheet" href={revealHighlight} />
     <link
       rel="stylesheet"
       href={whiteThemeUrl}
@@ -48,8 +46,6 @@ const {title = 'Slides'} = Astro.props;
 
     <script>
       import Reveal from 'reveal.js';
-      import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js';
-      import Highlight from 'reveal.js/plugin/highlight/highlight.esm.js';
       import Notes from 'reveal.js/plugin/notes/notes.esm.js';
 
       const root = document.querySelector('.reveal');
@@ -58,7 +54,7 @@ const {title = 'Slides'} = Astro.props;
       const deck = new Reveal(root, {
         hash: true,
         slideNumber: true,
-        plugins: [Markdown, Highlight, Notes],
+        plugins: [Notes],
       });
 
       await deck.initialize();
