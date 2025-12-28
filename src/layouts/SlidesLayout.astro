@@ -1,7 +1,7 @@
 ---
 import 'uno.css';
-import 'reveal.js/dist/reveal.css';
-import 'reveal.js/plugin/highlight/monokai.css';
+import revealCss from 'reveal.js/dist/reveal.css?url';
+import revealHighlight from 'reveal.js/plugin/highlight/monokai.css?url';
 import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
 import blackThemeUrl from 'reveal.js/dist/theme/black.css?url';
 import HeadContent from '../components/HeadContent.astro';
@@ -24,9 +24,9 @@ const {title = 'Slides'} = Astro.props;
         display: none;
       }
     </style>
-  </head>
 
-  <body>
+    <link rel="stylesheet" href={revealCss} />
+    <link rel="stylesheet" href={revealHighlight} />
     <link
       rel="stylesheet"
       href={whiteThemeUrl}
@@ -37,7 +37,9 @@ const {title = 'Slides'} = Astro.props;
       href={blackThemeUrl}
       media="(prefers-color-scheme: dark)"
     />
+  </head>
 
+  <body>
     <div class="reveal">
       <div class="slides">
         <slot />
