@@ -47,7 +47,10 @@ const {title = 'Slides'} = Astro.props;
   </head>
 
   <body>
-    <a class="fixed top-3 left-3 z-50 group" href={withBase('')}>
+    <a
+      class="fixed top-3 left-3 z-50 group focus-visible:outline-none"
+      href={withBase('')}
+    >
       <span
         class:list={[
           'inline-flex items-center gap-2',
@@ -60,9 +63,8 @@ const {title = 'Slides'} = Astro.props;
           'max-w-[3.75rem]',
           'transition-[max-width] duration-200 ease-out',
 
-          'hover:max-w-[10rem]',
-          'focus-visible:max-w-[10rem]',
-          'focus-visible:outline-none',
+          'group-hover:max-w-[10rem]',
+          'group-focus-visible:max-w-[10rem]',
         ]}
       >
         <Logo class="h-8 w-8 flex-shrink-0" />
