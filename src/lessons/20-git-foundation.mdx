@@ -1,0 +1,239 @@
+---
+title: 20 Git as the Backbone of DevOps
+slug: 20-git-foundation
+description: Getting started with git and tools.
+type: lab
+---
+
+## Introduction \{.no-step\}
+
+In this module, we focus on Git as the foundation of all DevOps workflows.
+
+Before automation, pipelines, containers, or deployment, there is always version control.  
+Git is the system that turns individual changes into a reliable, automatable process.
+
+The goal here is not to memorize commands, but to become comfortable **making, undoing, and combining changes**.
+
+## What you will do \{.no-step\}
+
+During this module, you will:  
+- work on a single repository  
+- create and merge branches  
+- resolve a merge conflict  
+- understand why Git enables automation  
+
+This module is mostly hands-on.
+
+## Understanding the repository state
+
+Before making changes, check the current state of the repository.
+
+Run:
+
+```bash
+git status
+```
+
+Observe:  
+- which branch you are on  
+- whether your working tree is clean  
+
+Then run:
+
+```bash
+git log --oneline --decorate
+```
+
+This shows the commit history and branch pointers.
+
+Do not try to memorize this output.  
+The goal is simply to recognize it.
+
+## Creating a feature branch
+
+Create a new branch for your work:
+
+```bash
+git switch -c feature/git-practice
+```
+
+Confirm that you are on the new branch:
+
+```bash
+git status
+```
+
+Branches allow you to work without affecting the main branch.
+
+## Making and committing a change
+
+Create a new file:
+
+```text
+labs/02-git/notes.txt
+```
+
+Add a few lines of text. The content does not matter.
+
+Check the status, then commit:
+
+```bash
+git add labs/02-git/notes.txt
+git commit -m "Add notes for Git practice"
+```
+
+You have now created a commit on your branch.
+
+## Switching branches and observing changes
+
+Switch back to the main branch:
+
+```bash
+git switch main
+```
+
+Observe that your new file is no longer present.
+
+Switch back to your branch:
+
+```bash
+git switch feature/git-practice
+```
+
+The file reappears.
+
+This demonstrates a core Git concept:  
+branches are pointers to different states of the repository.
+
+## Merging the branch into main
+
+### Switch to main:
+
+```bash
+git switch main
+```
+
+### Merge your feature branch:
+
+```bash
+git merge feature/git-practice
+```
+
+If no conflict occurs, the merge completes immediately.
+
+Check the history again:
+
+```bash
+git log --oneline --decorate
+```
+
+Notice how the branch history is combined.
+
+## Creating a merge conflict (guided)
+
+Merge conflicts are normal and expected.  
+We will create one intentionally.
+
+### On the main branch:
+
+- Open an existing file.  
+- Modify a single line.  
+- Save the file.
+
+Commit the change:
+
+```bash
+git add <file>
+git commit -m "Modify file on main"
+```
+
+### Switch to your feature branch:
+
+```bash
+git switch feature/git-practice
+```
+
+Modify the same line in a different way.  
+Commit the change:
+
+```bash
+git add <file>
+git commit -m "Modify file on feature branch"
+```
+
+### Switch back to main and attempt the merge:
+
+```bash
+git switch main
+git merge feature/git-practice
+```
+
+Git will report a conflict.
+
+## Resolving the merge conflict
+
+Open the conflicted file in your editor.
+
+You will see conflict markers showing two versions of the content.
+
+Decide what the final version should be.  
+Remove the conflict markers.  
+Save the file.
+
+Complete the merge:
+
+```bash
+git add <file>
+git commit -m "Resolve merge conflict"
+```
+
+You have now resolved a merge conflict successfully.
+
+## Why Git enables DevOps
+
+At this point, you have:  
+- isolated work in a branch  
+- created commits  
+- merged changes  
+- resolved a conflict explicitly
+
+Automation systems rely on exactly these events:  
+- commits  
+- branches  
+- merges
+
+Git is what makes Continuous Integration (CI) and Continuous Delivery (CD) possible.
+
+## Assessment: Git checkpoint \{.no-step\}
+
+Before moving on, perform a short Git checkpoint.
+
+You should be able to:  
+- create a branch  
+- commit a change  
+- merge a branch  
+- resolve a merge conflict  
+- explain what you did
+
+This checkpoint is:  
+- practical  
+- low stress  
+- low weight in the final grade
+
+It may be evaluated by reviewing your repository or through a short explanation.
+
+## Optional extensions (if time allows) \{.no-step\}
+
+If you finish early, you can optionally:  
+- repeat the conflict exercise with a different file  
+- explore `git diff`  
+- explore `git log --graph`
+
+These are not required.
+
+## Conclusion \{.no-step\}
+
+Git is the backbone of DevOps because it turns individual work into a reliable, shared history.
+
+In the next module, we will start automating what happens **after a commit**.  
+That is where Continuous Integration begins.
