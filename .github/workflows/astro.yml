@@ -7,7 +7,7 @@ name: Deploy Astro site to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["main", "staging"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -24,17 +24,23 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-env:
-  BUILD_PATH: "." # default value when not using subfolders
-  # BUILD_PATH: subfolder
-
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      # Check out main and staging
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: repo-main
+      - name: Checkout staging
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          path: repo-staging
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -47,22 +53,41 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
-      - name: Install dependencies
+
+      # Build main -> out/
+      - name: Install deps (main)
         run: pnpm install
-        working-directory: ${{ env.BUILD_PATH }}
-      - name: Lint with xo
+        working-directory: repo-main
+      - name: Lint (main)
         run: pnpm run lint
-        working-directory: ${{ env.BUILD_PATH }}
-      - name: Build with Astro
+        working-directory: repo-main
+      - name: Build (main -> root)
         run: |
           pnpm astro build \
             --site "${{ steps.pages.outputs.origin }}" \
-            --base "${{ steps.pages.outputs.base_path }}"
-        working-directory: ${{ env.BUILD_PATH }}
+            --base "${{ steps.pages.outputs.base_path }}" \
+            --outDir ../out
+        working-directory: repo-main
+
+      # Build staging -> out/staging/
+      - name: Install deps (staging)
+        run: pnpm install
+        working-directory: repo-staging
+      - name: Lint (staging)
+        run: pnpm run lint
+        working-directory: repo-staging
+      - name: Build (staging -> out/staging/)
+        run: |
+          pnpm astro build \
+            --site "${{ steps.pages.outputs.origin }}" \
+            --base "${{ steps.pages.outputs.base_path }}/staging" \
+            --outDir ../out/staging
+        working-directory: repo-staging
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ${{ env.BUILD_PATH }}/dist
+          path: out
 
   deploy:
     environment:
