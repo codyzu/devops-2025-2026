@@ -22,7 +22,7 @@ permissions:
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -50,6 +50,9 @@ jobs:
         with:
           node-version: "24"
           cache: "pnpm"
+          cache-dependency-path: |
+            repo-main/pnpm-lock.yaml
+            repo-staging/pnpm-lock.yaml
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
@@ -78,9 +81,13 @@ jobs:
         working-directory: repo-staging
       - name: Build (staging -> out/staging/)
         run: |
+          set -euxo pipefail
+          # Safely handle possible trailing slash in base path
+          BASE="${{ steps.pages.outputs.base_path }}"
+          BASE="${BASE%/}/staging"
           pnpm astro build \
             --site "${{ steps.pages.outputs.origin }}" \
-            --base "${{ steps.pages.outputs.base_path }}/staging" \
+            --base "${BASE}" \
             --outDir ../out/staging
         working-directory: repo-staging
 
