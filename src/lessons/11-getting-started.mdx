@@ -4,18 +4,141 @@ description: Getting started with git and tools.
 slug: 11-getting-started
 type: lab
 ---
-import Icon from '../components/Icon.astro';
+import { Code } from 'astro-expressive-code/components'
 
-Welcome to RES507 <Icon name="i-tabler-terminal" />! This course will introduce you to the fundamentals of web development, including HTML, CSS, and JavaScript. Throughout the course, you'll learn how to create responsive and interactive web pages, work with modern web frameworks, and understand best practices in web design and development.
+## Goal of this lab \{.no-step\}
 
-## Getting <Icon name="i-tabler-terminal" /> Started
+In this lab, you will make sure your environment is ready and make your **first contribution** to the course repository.
 
-### Installing something
+Nothing here can break your system.  
+Nothing here is graded for correctness.  
+The goal is simply to get started and feel comfortable.
 
-#### Extra info
+By the end of this lab, you will have:
+- cloned the course repository
+- verified that required tools work
+- created and committed your first file
 
-Test
+All hands-on work in this course happens in the course repository.
 
-```typescript
-console.log("Hello, RES507!");
+If something does not work, raise your hand early. That is expected.
+
+## Verify required tools
+
+Run the following commands in a terminal:
+
+```bash
+git --version
+docker --version
 ```
+
+If both commands print a version number, you are good.
+
+If Docker is available, you can optionally run:
+
+```bash
+docker run hello-world
+```
+
+This step is only to verify that things work.  
+If something fails, stop here and ask for help.
+
+## Clone the course repository
+
+Clone the course repository to your machine.
+
+```bash
+git clone <REPO_URL>
+cd <REPO_NAME>
+```
+
+Once cloned:
+- open the folder in your editor
+- take a moment to look around
+
+You should see folders like:
+- `labs/`
+- `app/` (or similar)
+- `README.md`
+
+You do not need to understand everything yet.
+
+## Create your first file
+
+Inside the repository, create the following file:
+
+```txt showLineNumbers=false
+labs/01-welcome/hello.txt
+```
+
+Add the following content:
+
+```txt showLineNumbers=false
+Hello from <your first name>
+```
+
+That is all. Keep it simple.
+
+This file exists only to give you something safe to commit.
+
+## Check Git status
+
+Before committing, check what Git sees:
+
+```bash
+git status
+```
+
+You should see your new file listed as untracked.
+
+This command is important. You will use it a lot.
+
+## Commit your change
+
+Add and commit the file:
+
+```bash
+git add labs/01-welcome/hello.txt
+git commit -m "Add hello file"
+```
+
+Then check the history:
+
+```bash
+git log --oneline
+```
+
+You should see your commit.
+
+Congratulations. You have made your first commit in this course.
+
+## Bonus
+
+If you finish early, you can optionally:
+- add a second line to `hello.txt`
+- or create a small `README.md` inside `labs/01-welcome/`
+
+This is optional and not required.
+
+## What matters in this lab \{.no-step\}
+
+What matters:
+- you cloned the repo
+- you ran a few commands
+- you committed something
+
+What does not matter:
+- the content of the file
+- speed
+- prior experience
+
+This lab is about **confidence and setup**, not technical depth.
+
+## Before moving on \{.no-step\}
+
+Make sure:
+- you are comfortable running commands
+- you know where the course repository is
+- you know how to make and commit changes
+
+We will build on this repository in every future lab.

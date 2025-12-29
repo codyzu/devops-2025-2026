@@ -7,13 +7,20 @@ import mdx from '@astrojs/mdx';
 import expressiveCode from 'astro-expressive-code';
 import {pluginLineNumbers} from '@expressive-code/plugin-line-numbers';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import {rehypeHeadingIds} from '@astrojs/markdown-remark';
+import rehypeSlug from 'rehype-slug';
+import remarkAttributes from 'remark-attributes';
 
 export default defineConfig({
+  // MDX by default uses the markdown config
+  // Adding rehype plugins after expressive code seems to break expressive code.
+  // Configure rehype here and expressive code continues to work.
   // Heading IDs + anchor links for both .md and .mdx
   markdown: {
+    // Remark-attributes' published types don't line up with Astro's unified plugin typing under // @ts-check.
+    // Runtime is fine; we cast to keep TS happy.
+    remarkPlugins: [/** @type {any} */ (remarkAttributes)],
     rehypePlugins: [
-      rehypeHeadingIds,
+      rehypeSlug,
       [
         rehypeAutolinkHeadings,
         {
@@ -44,9 +51,11 @@ export default defineConfig({
       plugins: [pluginLineNumbers()],
     }),
 
-    // Keep MDX extending the base markdown config (default),
-    // so it inherits the markdown rehype plugins above.
-    mdx(),
+    mdx({
+      // In MDX files, curly braces normally start JS expressions.
+      // remark-attributes supports attribute syntax in MDX when braces are escaped.
+      remarkPlugins: [[/** @type {any} */ (remarkAttributes), {mdx: true}]],
+    }),
 
     react(),
   ],

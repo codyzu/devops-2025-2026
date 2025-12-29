@@ -26,22 +26,22 @@ const {Content} = await render(lesson);
     counter-reset: step;
   }
 
-  .lesson :global(h2) {
+  .lesson :global(h2:not(.no-step)) {
     counter-increment: step;
     counter-reset: substep;
   }
 
-  .lesson :global(h2)::before {
+  .lesson :global(h2:not(.no-step))::before {
     content: 'Step ' counter(step) ': ';
     font-weight: 700;
     margin-right: 0.35rem;
   }
 
-  .lesson :global(h3) {
+  .lesson :global(h3:not(.no-step)) {
     counter-increment: substep;
   }
 
-  .lesson :global(h3)::before {
+  .lesson :global(h3:not(.no-step))::before {
     content: counter(step) '.' counter(substep) ' ';
     font-weight: 700;
     margin-right: 0.35rem;
