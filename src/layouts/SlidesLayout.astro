@@ -22,14 +22,19 @@ const {title = 'Slides'} = Astro.props;
       /* Hide heading autolink UI from mdx inside Reveal slides */
       .reveal .slides :global(.heading-anchor),
       .reveal .slides :global(.heading-anchor-icon) {
-        display: none;
+        --uno: hidden;
       }
 
       /* Reveal doesn't handle theme switches very well */
       /* On iOS, the background color doesn't update properly */
       /* This fixes the wrong background color */
       body.reveal-scroll .reveal .slides :global(.scroll-page) {
-        background: var(--r-background-color) !important;
+        --uno: 'important:bg-[var(--r-background-color)]';
+      }
+
+      /* Center expressive code blocks, while keeping the code left aligned, inside slides */
+      .reveal .slides :global(.expressive-code) {
+        --uno: 'text-left m-inline-auto max-w-48rem w-full';
       }
     </style>
 
