@@ -2,7 +2,7 @@
 
 import react from '@astrojs/react';
 import {defineConfig} from 'astro/config';
-import unoCSS from 'unocss/vite';
+import unoCSS from 'unocss/astro';
 import mdx from '@astrojs/mdx';
 import expressiveCode from 'astro-expressive-code';
 import {pluginLineNumbers} from '@expressive-code/plugin-line-numbers';
@@ -46,6 +46,9 @@ export default defineConfig({
   },
 
   integrations: [
+    unoCSS({
+      injectReset: '@unocss/reset/tailwind-v4.css',
+    }),
     // Expressive Code should run before MDX.
     expressiveCode({
       plugins: [pluginLineNumbers()],
@@ -59,8 +62,4 @@ export default defineConfig({
 
     react(),
   ],
-
-  vite: {
-    plugins: [unoCSS()],
-  },
 });
