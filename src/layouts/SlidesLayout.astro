@@ -3,9 +3,9 @@ import 'uno.css';
 import revealCss from 'reveal.js/dist/reveal.css?url';
 import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
 import blackThemeUrl from 'reveal.js/dist/theme/black.css?url';
-import HeadContent from '../components/HeadContent.astro';
 import {withBase} from '../lib/paths';
 import Logo from '../assets/logo.svg';
+import BaseLayout from './BaseLayout.astro';
 
 interface Props {
   title: string;
@@ -14,30 +14,28 @@ interface Props {
 const {title = 'Slides'} = Astro.props;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <HeadContent title={title} />
-    <style>
-      /* Hide heading autolink UI from mdx inside Reveal slides */
-      .reveal .slides :global(.heading-anchor),
-      .reveal .slides :global(.heading-anchor-icon) {
-        --uno: hidden;
-      }
+<style>
+  /* Hide heading autolink UI from mdx inside Reveal slides */
+  .reveal .slides :global(.heading-anchor),
+  .reveal .slides :global(.heading-anchor-icon) {
+    --uno: hidden;
+  }
 
-      /* Reveal doesn't handle theme switches very well */
-      /* On iOS, the background color doesn't update properly */
-      /* This fixes the wrong background color */
-      body.reveal-scroll .reveal .slides :global(.scroll-page) {
-        --uno: 'important:bg-[var(--r-background-color)]';
-      }
+  /* Reveal doesn't handle theme switches very well */
+  /* On iOS, the background color doesn't update properly */
+  /* This fixes the wrong background color */
+  body.reveal-scroll .reveal .slides :global(.scroll-page) {
+    --uno: 'important:bg-[var(--r-background-color)]';
+  }
 
-      /* Center expressive code blocks, while keeping the code left aligned, inside slides */
-      .reveal .slides :global(.expressive-code) {
-        --uno: 'text-left m-inline-auto max-w-48rem w-full';
-      }
-    </style>
+  /* Center expressive code blocks, while keeping the code left aligned, inside slides */
+  .reveal .slides :global(.expressive-code) {
+    --uno: 'text-left m-inline-auto max-w-48rem w-full';
+  }
+</style>
 
+<BaseLayout title={title}>
+  <Fragment slot="head">
     <link rel="stylesheet" href={revealCss} />
     <link
       rel="stylesheet"
@@ -49,69 +47,66 @@ const {title = 'Slides'} = Astro.props;
       href={blackThemeUrl}
       media="(prefers-color-scheme: dark)"
     />
-  </head>
+  </Fragment>
+  <a
+    class="fixed top-3 left-3 z-50 group focus-visible:outline-none"
+    href={withBase('')}
+  >
+    <span
+      class:list={[
+        'inline-flex items-center gap-2',
+        'px-3 py-2',
+        'bg-white/70 dark:bg-black/60 rounded-full backdrop-blur',
+        'border border-black/10 dark:border-white/15',
+        'text-base font-bold text-green-600 underline',
 
-  <body>
-    <a
-      class="fixed top-3 left-3 z-50 group focus-visible:outline-none"
-      href={withBase('')}
+        'overflow-hidden whitespace-nowrap',
+        'max-w-[3.75rem]',
+        'transition-[max-width] duration-200 ease-out',
+
+        'group-hover:max-w-[10rem]',
+        'group-focus-visible:max-w-[10rem]',
+      ]}
     >
+      <Logo class="h-8 w-8 flex-shrink-0" />
+
       <span
         class:list={[
-          'inline-flex items-center gap-2',
-          'px-3 py-2',
-          'bg-white/70 dark:bg-black/60 rounded-full backdrop-blur',
-          'border border-black/10 dark:border-white/15',
-          'text-base font-bold text-green-600 underline',
+          'opacity-0 -translate-x-1',
+          'transition-[opacity,transform] duration-150 ease-out',
 
-          'overflow-hidden whitespace-nowrap',
-          'max-w-[3.75rem]',
-          'transition-[max-width] duration-200 ease-out',
-
-          'group-hover:max-w-[10rem]',
-          'group-focus-visible:max-w-[10rem]',
+          'group-hover:opacity-100 group-hover:translate-x-0',
+          'group-focus-visible:opacity-100 group-focus-visible:translate-x-0',
         ]}
       >
-        <Logo class="h-8 w-8 flex-shrink-0" />
-
-        <span
-          class:list={[
-            'opacity-0 -translate-x-1',
-            'transition-[opacity,transform] duration-150 ease-out',
-
-            'group-hover:opacity-100 group-hover:translate-x-0',
-            'group-focus-visible:opacity-100 group-focus-visible:translate-x-0',
-          ]}
-        >
-          Home
-        </span>
+        Home
       </span>
-    </a>
-    <div
-      class="fixed top-4 right-4 z-50 bg-red-500 text-white text-sm font-normal px-3 py-1 rounded-full"
-    >
-      staging
+    </span>
+  </a>
+  <div
+    class="fixed top-4 right-4 z-50 bg-red-500 text-white text-sm font-normal px-3 py-1 rounded-full"
+  >
+    staging
+  </div>
+  <div class="reveal">
+    <div class="slides">
+      <slot />
     </div>
-    <div class="reveal">
-      <div class="slides">
-        <slot />
-      </div>
-    </div>
+  </div>
 
-    <script>
-      import Reveal from 'reveal.js';
-      import Notes from 'reveal.js/plugin/notes/notes.esm.js';
+  <script>
+    import Reveal from 'reveal.js';
+    import Notes from 'reveal.js/plugin/notes/notes.esm.js';
 
-      const root = document.querySelector('.reveal');
-      if (!root) throw new Error('Reveal root element not found');
+    const root = document.querySelector('.reveal');
+    if (!root) throw new Error('Reveal root element not found');
 
-      const deck = new Reveal(root, {
-        hash: true,
-        slideNumber: true,
-        plugins: [Notes],
-      });
+    const deck = new Reveal(root, {
+      hash: true,
+      slideNumber: true,
+      plugins: [Notes],
+    });
 
-      await deck.initialize();
-    </script>
-  </body>
-</html>
+    await deck.initialize();
+  </script>
+</BaseLayout>
