@@ -4,12 +4,13 @@ type: slides
 slug: 10-welcome
 description: RES507 welcome, intro, and course expectations.
 ---
+import {Image} from 'astro:assets';
 import hero from '../assets/hero.png';
 import xenPanda from '../assets/xen-panda-circle-transparent.png';
 import Icon from '../components/Icon.astro';
 
 <section>
-  <img src={hero.src} alt="RES507 Course Hero Image" className="rounded-xl" />
+  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl" />
   ## <Icon name="i-tabler-terminal" />Welcome to RES507!
 </section>
 
@@ -27,7 +28,7 @@ Cody Zuschlag
 Xen Project Community Manager
 
 <div className='items-center'>
-  <img src={xenPanda.src} alt="Xen Panda Logo" className="w-50% mx-auto" />
+  <Image src={xenPanda} alt="Xen Panda Logo" className="w-50% mx-auto" />
 </div>
 </section>
 

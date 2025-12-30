@@ -1,13 +1,33 @@
-# Astro + React Example
+# RES507 Course Site
 
+Static course site built with Astro 5. Lessons live in `src/lessons` as MDX and can render as labs or Reveal.js slide decks depending on frontmatter.
+
+![Hero image](src/assets/hero.png)
+
+Highlights
+- Astro 5 (static output) + Vite
+- MDX for lesson content
+- Reveal.js v5 for slides
+- UnoCSS with preset-wind4 utilities
+- Expressive Code for Markdown/MDX code highlighting
+- pnpm for package management
+
+Install
 ```sh
-pnpm create astro@latest -- --template framework-react
+pnpm install
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/framework-react)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/framework-react)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/framework-react/devcontainer.json)
+Development
+```sh
+pnpm dev
+```
 
-This example showcases Astro working with [React](https://react.dev).
+Build
+```sh
+pnpm build
+```
 
-Write your React components as `.jsx` or `.tsx` files in your project.
+Preview the production build
+```sh
+pnpm preview
+```
