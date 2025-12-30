@@ -31,7 +31,7 @@ CONTENT MODEL
 
 ROUTING
 - Labs → `/lessons/[slug]`
-- Slides → `/slides/[slug]`
+- Slides → `/lessons/[slug]`
 - Routing is determined by `type`:
   - type === 'lab' → lesson page
   - type === 'slides' → Reveal slide deck
