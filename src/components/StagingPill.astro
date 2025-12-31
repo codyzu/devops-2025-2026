@@ -1,0 +1,17 @@
+---
+interface Props {
+  class?: string;
+}
+
+const {class: className} = Astro.props;
+---
+
+<div
+  class:list={[
+    'rounded-full bg-red-500 px-2 py-1 z-50',
+    'text-white font-normal text-sm',
+    className,
+  ]}
+>
+  staging
+</div>
