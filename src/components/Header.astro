@@ -1,6 +1,7 @@
 ---
 import {withBase} from '../lib/paths';
 import Logo from '../assets/logo.svg';
+import StagingPill from './StagingPill.astro';
 ---
 
 <header
@@ -30,11 +31,11 @@ import Logo from '../assets/logo.svg';
           <span>RES507</span>
         </div>
       </a>
-      <div
-        class="rounded-full bg-red-500 text-white px-2 py-1 ml-auto font-normal text-sm self-center"
-      >
-        staging
-      </div>
+      {
+        import.meta.env.MODE === 'staging' && (
+          <StagingPill class="self-center ml-auto" />
+        )
+      }
     </div>
   </nav>
 </header>

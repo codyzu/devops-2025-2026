@@ -88,7 +88,8 @@ jobs:
           pnpm astro build \
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${BASE}" \
-            --outDir ../out/staging
+            --outDir ../out/staging \
+            --mode staging
         working-directory: repo-staging
 
       - name: Upload artifact

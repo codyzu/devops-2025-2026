@@ -3,6 +3,7 @@ import revealCss from 'reveal.js/dist/reveal.css?url';
 import whiteThemeUrl from 'reveal.js/dist/theme/white.css?url';
 import blackThemeUrl from 'reveal.js/dist/theme/black.css?url';
 import HomeButton from '../components/HomeButton.astro';
+import StagingPill from '../components/StagingPill.astro';
 import BaseLayout from './BaseLayout.astro';
 
 interface Props {
@@ -49,11 +50,12 @@ const {title = 'Slides'} = Astro.props;
 
   <HomeButton />
 
-  <div
-    class="fixed top-4 right-4 z-50 bg-red-500 text-white text-sm font-normal px-3 py-1 rounded-full"
-  >
-    staging
-  </div>
+  {
+    import.meta.env.MODE === 'staging' && (
+      <StagingPill class="fixed top-4 right-4" />
+    )
+  }
+
   <div class="reveal">
     <div class="slides">
       <slot />
