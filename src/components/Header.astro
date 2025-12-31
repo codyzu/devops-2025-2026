@@ -1,0 +1,40 @@
+---
+import {withBase} from '../lib/paths';
+import Logo from '../assets/logo.svg';
+---
+
+<header
+  class:list={[
+    'fixed top-1 left-0 right-0 z-50 h-14 w-full px-4 flex flex-row justify-center items-center',
+    'border-b border-black/5 dark:border-white/10',
+    'bg-white/60 dark:bg-black/50',
+    '[backdrop-filter:blur(12px)_saturate(180%)]',
+    '[-webkit-backdrop-filter:blur(12px)_saturate(180%)]',
+  ]}
+>
+  <nav class="w-full max-w-prose text-lg" aria-label="Primary">
+    <div
+      class="w-full flex flex-row justify-start text-xl font-600 tracking-wide"
+    >
+      <a href={withBase('')} aria-label="Home">
+        <div
+          class:list={[
+            'relative',
+            'flex flex-row gap-2 items-center',
+            'h-10 pr-5 pl-4 rounded-full',
+            'bg-white/70 dark:bg-black/60',
+            'border border-black/10 dark:border-white/15',
+          ]}
+        >
+          <Logo class="h-9 w-9" />
+          <span>RES507</span>
+        </div>
+      </a>
+      <div
+        class="rounded-full bg-red-500 text-white px-2 py-1 ml-auto font-normal text-sm self-center"
+      >
+        staging
+      </div>
+    </div>
+  </nav>
+</header>
