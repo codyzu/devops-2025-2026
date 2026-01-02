@@ -10,24 +10,12 @@ interface Props {
 const {title} = Astro.props;
 ---
 
-<style is:global>
-  body {
-    --uno: 'm-0 dark:bg-black dark:text-white font-sans tracking-normal min-h-100dvh selection:bg-green-6';
-  }
-
-  div {
-    --uno: 'flex flex-col';
-  }
-
-  a:hover {
-    --uno: 'text-green-600 underline';
-  }
-</style>
-
 <BaseLayout title={title}>
-  <Header />
-  <main class="pt-18">
-    <slot />
-  </main>
-  <Footer />
+  <div class="base-layout flex flex-col m-0 tracking-normal min-h-100dvh">
+    <Header />
+    <main class="pt-18">
+      <slot />
+    </main>
+    <Footer />
+  </div>
 </BaseLayout>
