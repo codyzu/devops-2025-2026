@@ -34,6 +34,7 @@ const config = [
       'react/no-unknown-property': 'off',
       'react/self-closing-comp': 'off',
       'react/jsx-no-undef': 'off',
+      'react/jsx-key': 'off',
     },
   },
   ...eslintPluginAstro.configs['flat/recommended'],

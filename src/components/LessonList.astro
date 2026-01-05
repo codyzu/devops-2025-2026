@@ -8,7 +8,7 @@ const publishedLessons = lessons
   .filter((lesson) => lesson.data.published);
 ---
 
-<ul class="m-0 mt-6 list-none space-y-5 p-0">
+<ul data-lesson-list class="m-0 mt-6 list-none space-y-5 p-0 invisible">
   {
     publishedLessons.map((lesson) => (
       <li data-available-from={lesson.data.availableFrom?.toISOString()}>
@@ -40,19 +40,37 @@ const publishedLessons = lessons
   }
 </ul>
 
+<noscript>
+  <style>
+    [data-lesson-list] {
+      visibility: visible !important;
+    }
+  </style>
+</noscript>
+
 <script>
-  const now = new Date();
+  const list = document.querySelector('[data-lesson-list]');
+  const nowMs = Date.now();
 
-  document
-    .querySelectorAll<HTMLLIElement>('li[data-available-from]')
-    .forEach((li) => {
-      const value = li.dataset.availableFrom;
+  list?.querySelectorAll('li').forEach((li) => {
+    const value = li.dataset.availableFrom;
 
-      if (!value) return;
+    // Default: visible
+    li.classList.remove('hidden');
 
-      const availableFrom = new Date(value);
-      if (!Number.isNaN(availableFrom.getTime()) && availableFrom > now) {
-        li.classList.add('hidden');
-      }
-    });
+    // No date means available immediately.
+    if (!value) return;
+
+    const availableFromMs = Date.parse(value);
+
+    // Fail open for usability: if the date is invalid, keep it visible.
+    if (Number.isNaN(availableFromMs)) return;
+
+    if (availableFromMs > nowMs) {
+      li.classList.add('hidden');
+    }
+  });
+
+  // Reveal the list once filtering is done to avoid flicker.
+  list?.classList.remove('invisible');
 </script>
