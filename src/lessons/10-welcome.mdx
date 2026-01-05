@@ -10,8 +10,12 @@ import xenPanda from '../assets/xen-panda-circle-transparent.png';
 import Icon from '../components/Icon.astro';
 
 <section>
-  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl" />
-  ## <Icon name="i-tabler-terminal" />Welcome to RES507!
+  {/* <div className='flex flex-col max-h-full pb-6'> */}
+    {/* <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" /> */}
+    {/* <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl flex-1" /> */}
+    <img src={hero.src} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" />
+    ## <Icon name="i-tabler-terminal" />Welcome to RES507!
+  {/* </div> */}
 </section>
 
 <section>
@@ -27,9 +31,11 @@ Cody Zuschlag
 \
 Xen Project Community Manager
 
-<div className='items-center'>
-  <Image src={xenPanda} alt="Xen Panda Logo" className="w-50% mx-auto" />
-</div>
+{/* <div className='items-center'> */}
+  <img src={xenPanda.src} alt="Xen Panda Logo" className="r-stretch" />
+  {/* <Image src={xenPanda} alt="Xen Panda Logo" className="r-stretch" /> */}
+  {/* <Image src={xenPanda} alt="Xen Panda Logo" className="w-50% mx-auto" /> */}
+{/* </div> */}
 </section>
 
 <section>
