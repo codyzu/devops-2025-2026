@@ -70,7 +70,7 @@ Branches allow you to work without affecting the main branch.
 Create a new file:
 
 ```text
-labs/02-git/notes.txt
+labs/20-git-foundation/notes.txt
 ```
 
 Add a few lines of text. The content does not matter.
@@ -78,7 +78,7 @@ Add a few lines of text. The content does not matter.
 Check the status, then commit:
 
 ```bash
-git add labs/02-git/notes.txt
+git add labs/20-git-foundation/notes.txt
 git commit -m "Add notes for Git practice"
 ```
 
@@ -136,14 +136,14 @@ We will create one intentionally.
 
 ### On the main branch:
 
-- Open an existing file.  
+- Open the file `workspace/story.txt`.  
 - Modify a single line.  
 - Save the file.
 
 Commit the change:
 
 ```bash
-git add <file>
+git add workspace/story.txt
 git commit -m "Modify file on main"
 ```
 
@@ -157,7 +157,7 @@ Modify the same line in a different way.
 Commit the change:
 
 ```bash
-git add <file>
+git add workspace/story.txt
 git commit -m "Modify file on feature branch"
 ```
 
@@ -183,7 +183,7 @@ Save the file.
 Complete the merge:
 
 ```bash
-git add <file>
+git add workspace/story.txt
 git commit -m "Resolve merge conflict"
 ```
 
