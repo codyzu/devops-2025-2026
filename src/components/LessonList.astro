@@ -1,0 +1,58 @@
+---
+import {getCollection} from 'astro:content';
+import {withBase} from '../lib/paths';
+
+const lessons = await getCollection('lessons');
+const publishedLessons = lessons
+  .toSorted((a, b) => a.id.localeCompare(b.id))
+  .filter((lesson) => lesson.data.published);
+---
+
+<ul class="m-0 mt-6 list-none space-y-5 p-0">
+  {
+    publishedLessons.map((lesson) => (
+      <li data-available-from={lesson.data.availableFrom?.toISOString()}>
+        <a
+          href={withBase(`lessons/${lesson.id}`)}
+          class="group flex gap-3 rounded-xl bg-white/60 p-4 no-underline shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white/75 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 md:p-5 dark:bg-slate-800/55 dark:ring-white/10 dark:shadow-none dark:hover:bg-slate-800/70"
+        >
+          <span
+            class="mt-0.5 inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 ring-1 ring-emerald-500/15 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+            aria-hidden="true"
+          >
+            <i
+              class={`${lesson.data.type === 'lab' ? 'i-tabler-flask-2' : 'i-tabler-presentation'} h-5 w-5`}
+              aria-hidden="true"
+            />
+          </span>
+
+          <div class="min-w-0">
+            <h2 class="m-0 text-lg font-semibold leading-snug text-slate-900 group-hover:text-green-600 dark:text-slate-50">
+              {lesson.data.title}
+            </h2>
+            <p class="m-0 mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              {lesson.data.description}
+            </p>
+          </div>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<script>
+  const now = new Date();
+
+  document
+    .querySelectorAll<HTMLLIElement>('li[data-available-from]')
+    .forEach((li) => {
+      const value = li.dataset.availableFrom;
+
+      if (!value) return;
+
+      const availableFrom = new Date(value);
+      if (!Number.isNaN(availableFrom.getTime()) && availableFrom > now) {
+        li.classList.add('hidden');
+      }
+    });
+</script>

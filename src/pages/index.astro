@@ -1,16 +1,8 @@
 ---
-import {getCollection} from 'astro:content';
 import {Picture} from 'astro:assets';
-import LessonList from '../components/LessonList.tsx';
+import LessonList from '../components/LessonList.astro';
 import heroImage from '../assets/hero.png';
 import PageLayout from '../layouts/PageLayout.astro';
-
-const lessons = await getCollection('lessons');
-
-const lessonData = lessons
-  .toSorted((a, b) => a.id.localeCompare(b.id))
-  .filter((lesson) => lesson.data.published)
-  .map((lesson) => ({...lesson.data, id: lesson.id}));
 ---
 
 <PageLayout title="All Lessons">
@@ -32,6 +24,6 @@ const lessonData = lessons
   </div>
   <article class="prose prose-lg prose-green dark:prose-invert p-4 mx-auto">
     <h1>All Lessons</h1>
-    <LessonList client:load lessons={lessonData} />
+    <LessonList />
   </article>
 </PageLayout>
