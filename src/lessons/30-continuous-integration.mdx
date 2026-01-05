@@ -1,0 +1,198 @@
+---
+title: "30 Continuous Integration Preview"
+slug: "30-continuous-integration"
+description: "Create a tiny CI job that runs automatically after a push."
+type: lab
+availableFrom: 2025-07-01T00:00:00Z
+---
+
+## Introduction \{.no-step\}
+
+In this lab, you will create a minimal Continuous Integration (CI) job and watch it run automatically after you push a commit.
+
+This lab is designed as a preview. If you run out of time, stop at any point. We will cover CI in depth in the next session.
+
+## Prerequisites \{.no-step\}
+
+You should have:
+- the course lab repository cloned locally
+- Git working on your machine
+- access to a remote repository you can push to (fork or personal copy)
+
+## Create a CI preview branch
+
+Create a new branch for this lab:
+
+```bash
+git switch -c feature/ci-preview
+```
+
+Confirm your status:
+
+```bash
+git status
+```
+
+## Add a script that CI can run
+
+Create a new script file:
+
+```bash
+mkdir -p scripts
+```
+
+Create `scripts/ci-preview.sh` with the following content:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "CI preview: hello from $(uname -s)"
+echo "Current directory:"
+pwd
+
+echo "Repository status:"
+git status
+
+echo "Done."
+```
+
+Make the script executable:
+
+```bash
+chmod +x scripts/ci-preview.sh
+```
+
+Run it locally to confirm it works:
+
+```bash
+./scripts/ci-preview.sh
+```
+
+## Add a minimal CI configuration
+
+Choose the CI system used for your remote repository and add the matching configuration.
+
+### GitHub Actions workflow
+
+Create the workflow directory:
+
+```bash
+mkdir -p .github/workflows
+```
+
+Create `.github/workflows/ci.yml`:
+
+```yaml
+name: CI Preview
+
+on:
+  push:
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run preview script
+        run: ./scripts/ci-preview.sh
+```
+
+### GitLab CI pipeline
+
+Create `.gitlab-ci.yml` in the repository root:
+
+```yaml
+stages:
+  - preview
+
+ci_preview:
+  stage: preview
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache bash git
+  script:
+    - bash ./scripts/ci-preview.sh
+```
+
+## Commit and push
+
+Stage your changes:
+
+```bash
+git add scripts .github .gitlab-ci.yml
+```
+
+Commit:
+
+```bash
+git commit -m "Add CI preview job"
+```
+
+Push your branch to your remote:
+
+```bash
+git push -u origin feature/ci-preview
+```
+
+## Observe the CI run
+
+Open your repository in the browser and find the CI run:
+
+- For GitHub: look for the Actions tab and the “CI Preview” workflow run.
+- For GitLab: look for the CI/CD Pipelines view and the pipeline for your branch.
+
+Open the job logs and confirm you can find these lines:
+- `CI preview: hello from`
+- `Repository status:`
+- `Done.`
+
+## Troubleshooting \{.no-step\}
+
+### CI cannot find the script
+
+Confirm the script exists and is executable:
+
+```bash
+ls -la scripts
+```
+
+### Permission denied when running the script
+
+Re-apply executable permissions and commit the change:
+
+```bash
+chmod +x scripts/ci-preview.sh
+git add scripts/ci-preview.sh
+git commit -m "Make CI preview script executable"
+git push
+```
+
+### No CI run appears after pushing
+
+Confirm you pushed to the correct remote and branch:
+
+```bash
+git remote -v
+git branch --show-current
+```
+
+If you are using GitHub Actions, confirm the workflow file exists:
+
+```bash
+ls -la .github/workflows
+```
+
+If you are using GitLab CI, confirm the pipeline file exists:
+
+```bash
+ls -la .gitlab-ci.yml
+```
+
+## Wrap-up \{.no-step\}
+
+You have created a minimal CI job that runs automatically after a push.
+
+In the next session, you will expand this into a real pipeline with checks like formatting, linting, and tests.
