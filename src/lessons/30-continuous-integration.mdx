@@ -22,7 +22,7 @@ You should have:
 
 For this lab, you must work in **your own copy** of the repository on GitHub.
 
-- Create a **fork** of the instructor repository under your GitHub account.
+- Create a **fork** of the instructor repository under your GitHub account: https://github.com/codyzu/res507-2025-2026-work.
 - Clone your fork locally.
 - Push all changes to **your fork**, not to the instructor repository.
 
@@ -84,7 +84,7 @@ Run it locally to confirm it works:
 
 ## Add a minimal CI configuration
 
-Choose the CI system used for your remote repository and add the matching configuration.
+Add a minimal GitHub Actions workflow that runs after every push.
 
 ### GitHub Actions workflow
 
@@ -113,29 +113,12 @@ jobs:
         run: ./scripts/ci-preview.sh
 ```
 
-### GitLab CI pipeline
-
-Create `.gitlab-ci.yml` in the repository root:
-
-```yaml
-stages:
-  - preview
-
-ci_preview:
-  stage: preview
-  image: alpine:3.20
-  before_script:
-    - apk add --no-cache bash git
-  script:
-    - bash ./scripts/ci-preview.sh
-```
-
 ## Commit and push
 
 Stage your changes:
 
 ```bash
-git add scripts .github .gitlab-ci.yml
+git add scripts .github/workflows/ci.yml
 ```
 
 Commit:
@@ -152,10 +135,9 @@ git push -u origin feature/ci-preview
 
 ## Observe the CI run
 
-Open your repository in the browser and find the CI run:
+Open your repository on GitHub and go to the **Actions** tab.
 
-- For GitHub: look for the Actions tab and the “CI Preview” workflow run.
-- For GitLab: look for the CI/CD Pipelines view and the pipeline for your branch.
+You should see a workflow run named **CI Preview** for your branch.
 
 Open the job logs and confirm you can find these lines:
 - `CI preview: hello from`
@@ -196,12 +178,6 @@ If you are using GitHub Actions, confirm the workflow file exists:
 
 ```bash
 ls -la .github/workflows
-```
-
-If you are using GitLab CI, confirm the pipeline file exists:
-
-```bash
-ls -la .gitlab-ci.yml
 ```
 
 ## Wrap-up \{.no-step\}
