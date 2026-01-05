@@ -31,6 +31,14 @@ const {title = 'Slides'} = Astro.props;
   .reveal .slides :global(.expressive-code) {
     --uno: 'text-left m-inline-auto max-w-48rem w-full';
   }
+
+  :global(.reveal img) {
+    --uno: 'inline-block';
+  }
+
+  /* .reveal:global(img) {
+    --uno: 'inline-block';
+  } */
 </style>
 
 <BaseLayout title={title}>
