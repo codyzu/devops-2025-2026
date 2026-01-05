@@ -17,7 +17,11 @@ import StagingPill from './StagingPill.astro';
     <div
       class="w-full flex flex-row justify-start text-xl font-600 tracking-wide"
     >
-      <a href={withBase('')} aria-label="Home">
+      <a
+        href={withBase('')}
+        aria-label="Home"
+        class="view-transition-home-button"
+      >
         <div
           class:list={[
             'relative',
