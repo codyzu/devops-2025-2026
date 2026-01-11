@@ -1,0 +1,185 @@
+---
+title: "Containerized Node Application"
+slug: "40-containerized-node-app"
+description: "Build and run a simple Node.js application using Docker and Docker Compose."
+type: lab
+---
+
+In this lab, you will take a small Node.js application and run it inside containers. You will start by building and running the application image, then introduce a database and orchestrate everything with Docker Compose.
+
+## Prerequisites \{.no-step\}
+
+You should have:
+
+- Docker installed and running
+- Git working on your machine
+- Your fork of the course work repository cloned locally
+
+All changes must be committed and pushed to **your fork**.
+
+## Explore the application structure
+
+Navigate to the lab directory in the work repository.
+
+```bash
+cd labs/40-containerized-node-app
+```
+
+Inspect the directory structure.
+
+```bash
+ls
+```
+
+Pay particular attention to:
+
+- `app/` — the Node.js application
+- `db/init.sql` — database initialization script
+- `docker/Dockerfile` — application image definition
+- `docker/compose.yaml` — multi-container setup
+
+## Build the application image
+
+Build the Docker image for the application.
+
+```bash
+docker build -t quote-app -f docker/Dockerfile .
+```
+
+Observe the build output and identify the main steps:
+
+- base image selection
+- dependency installation
+- source code copy
+- exposed port
+
+## Run the application container
+
+Run the application container without a database.
+
+```bash
+docker run --rm -p 3000:3000 quote-app
+```
+
+Open a browser and navigate to:
+
+```
+http://localhost:3000
+```
+
+Confirm that the application starts and renders placeholder data.
+
+Stop the container with `Ctrl+C`.
+
+## Inspect environment-based configuration
+
+Review how the application reads configuration from environment variables.
+
+Open `app/server.js` and locate the database configuration.
+
+Verify that the application can start even if the database is not available.
+
+## Start the database with Docker
+
+Run a PostgreSQL container manually.
+
+```bash
+docker run --rm \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=postgres \
+  -p 5432:5432 \
+  postgres
+```
+
+Observe the logs and confirm that the database initializes successfully.
+
+Stop the container with `Ctrl+C`.
+
+## Orchestrate services with Docker Compose
+
+Start both the application and database using Docker Compose.
+
+```bash
+docker compose -f docker/compose.yaml up --build
+```
+
+Wait until both services are running and healthy.
+
+Open the application again in your browser and refresh the page.
+
+Observe the difference in behavior compared to running the application alone.
+
+## Enable database queries in the application
+
+Open `app/server.js`.
+
+Uncomment the SELECT query in the root route handler so that data is fetched from the database.
+
+Save the file and rebuild the application image.
+
+```bash
+docker compose -f docker/compose.yaml build
+docker compose -f docker/compose.yaml up
+```
+
+Refresh the page and confirm that data now comes from the database.
+
+## Insert data using the application
+
+Use the form in the web interface to submit a new quote.
+
+Observe the application logs in the terminal.
+
+Refresh the page and confirm that the new data is persisted.
+
+## Observe container behavior
+
+In a separate terminal, list running containers.
+
+```bash
+docker ps
+```
+
+Inspect logs for a specific service.
+
+```bash
+docker compose -f docker/compose.yaml logs app
+```
+
+Stop the environment cleanly.
+
+```bash
+docker compose -f docker/compose.yaml down
+```
+
+## Troubleshooting \{.no-step\}
+
+### Application does not start
+
+Confirm the image builds successfully and that port `3000` is not already in use.
+
+```bash
+docker images
+docker ps
+```
+
+### Database connection errors
+
+Confirm the database service is healthy before the application starts.
+
+```bash
+docker compose -f docker/compose.yaml ps
+```
+
+Review the database logs if needed.
+
+```bash
+docker compose -f docker/compose.yaml logs db
+```
+
+## Wrap-up \{.no-step\}
+
+You have built and run a containerized Node.js application and orchestrated it with Docker Compose.
+
+This setup mirrors how real services are developed, tested, and prepared for deployment. In the next session, you will build on this foundation with automation and Continuous Integration.
