@@ -58,7 +58,7 @@ Observe the build output and identify the main steps:
 Run the application container without a database.
 
 ```bash
-docker run --rm -p 3000:3000 quote-app
+docker run --rm -it -p 3000:3000 quote-app
 ```
 
 Open a browser and navigate to:
@@ -89,10 +89,31 @@ docker run --rm \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=postgres \
   -p 5432:5432 \
-  postgres
+  postgres:18
 ```
 
 Observe the logs and confirm that the database initializes successfully.
+
+<details>
+<summary><strong>Optional: initialize the database manually (for debugging)</strong></summary>
+
+By default, this database is empty and temporary.
+
+If you want to initialize it with the schema and seed data **without using Docker Compose**, you can mount the initialization script manually:
+
+```bash
+docker run --rm \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=postgres \
+  -p 5432:5432 \
+  -v "$(pwd)/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro" \
+  postgres:18
+```
+
+This is useful for debugging, but Docker Compose already handles database initialization automatically.
+
+</details>
 
 Stop the container with `Ctrl+C`.
 
