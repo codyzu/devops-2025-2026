@@ -71,6 +71,25 @@ Confirm that the application starts and renders placeholder data.
 
 Stop the container with `Ctrl+C`.
 
+<details>
+<summary><strong>Optional challenge: explore the container from the inside</strong></summary>
+
+Run the container with an interactive shell instead of starting the server.
+
+```bash
+docker run --rm -it quote-app sh
+```
+
+Inside the container:
+
+- Inspect the filesystem layout
+- Locate the application files
+- Check the installed Node.js version
+
+Exit the container when done.
+
+</details>
+
 ## Inspect environment-based configuration
 
 Review how the application reads configuration from environment variables.
@@ -115,6 +134,25 @@ This is useful for debugging, but Docker Compose already handles database initia
 
 </details>
 
+<details>
+<summary><strong>Optional challenge: connect to PostgreSQL manually</strong></summary>
+
+From another terminal, connect to the running database using `psql`.
+
+```bash
+psql -h localhost -U postgres -d postgres
+```
+
+Inside the prompt:
+
+- List tables
+- Query existing data
+- Exit the session
+
+This helps validate that the database is running independently of the application.
+
+</details>
+
 Stop the container with `Ctrl+C`.
 
 ## Orchestrate services with Docker Compose
@@ -146,6 +184,29 @@ docker compose -f docker/compose.yaml up
 
 Refresh the page and confirm that data now comes from the database.
 
+<details>
+<summary><strong>Optional challenge: break and fix the application</strong></summary>
+
+Intentionally introduce a small error in the SQL query.
+
+Examples:
+
+- Misspell a column name
+- Change the table name
+- Remove a parameter
+
+Rebuild and restart the services.
+
+Observe:
+
+- Application logs
+- Database error messages
+- Container exit behavior (if any)
+
+Fix the issue and confirm the application recovers.
+
+</details>
+
 ## Insert data using the application
 
 Use the form in the web interface to submit a new quote.
@@ -153,6 +214,37 @@ Use the form in the web interface to submit a new quote.
 Observe the application logs in the terminal.
 
 Refresh the page and confirm that the new data is persisted.
+
+<details>
+<summary><strong>Optional challenge: add a new route</strong></summary>
+
+Add a new route to the application that returns raw JSON instead of HTML.
+
+Ideas:
+
+- `/health` endpoint
+- `/api/quotes` endpoint
+
+Rebuild the image and confirm the route works in the browser.
+
+</details>
+
+<details>
+<summary><strong>Optional challenge: improve the look and feel</strong></summary>
+
+Improve the appearance of the application interface.
+
+Options:
+
+- Add basic styling directly in the Handlebars templates
+- Serve a small CSS file using Fastify’s static file plugin
+- Adjust layout, spacing, or typography for readability
+
+Keep changes minimal and focus on clarity rather than design complexity.
+
+Rebuild the image and confirm that the updated styling appears in the browser.
+
+</details>
 
 ## Observe container behavior
 
@@ -198,6 +290,60 @@ Review the database logs if needed.
 ```bash
 docker compose -f docker/compose.yaml logs db
 ```
+
+<details>
+<summary><strong>Bonus challenge: add automated tests</strong></summary>
+
+Use Node.js built-in testing and Fastify's `inject` method to test a route.
+
+Steps:
+
+- Create a simple test file
+- Start the app in memory
+- Assert on the response status and body
+
+This is intentionally open-ended and meant for advanced exploration.
+
+Example starting point:
+
+```js
+// tests/app.test.js
+import test from 'node:test'
+import assert from 'node:assert'
+import buildApp from '../app/app.js'
+
+test('GET / responds with a page', async () => {
+  const app = buildApp()
+
+  const response = await app.inject({
+    method: 'GET',
+    url: '/'
+  })
+
+  assert.strictEqual(response.statusCode, 200)
+
+  // TODO:
+  // - inspect response.body
+  // - assert on returned content
+  // - add more tests for other routes
+})
+```
+
+This example only tests an in-memory instance of the application.
+Extending it to test database-backed routes is intentionally left as an exercise.
+
+To run the tests locally:
+
+```bash
+node --test
+```
+
+If you add a test script to `package.json`, you may also run:
+
+```bash
+npm test
+```
+</details>
 
 ## Wrap-up \{.no-step\}
 
