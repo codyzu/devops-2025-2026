@@ -1,0 +1,222 @@
+---
+title: "50 Automating the Pipeline with Continuous Integration"
+slug: "50-ci-pipeline"
+description: "Build a real CI pipeline that validates your application build and runtime behavior."
+type: lab
+availableFrom: 2026-02-05
+---
+
+In this lab, you will extend the work from the previous sessions and build a **real Continuous Integration pipeline** for your application.
+
+Unlike the CI preview you may have done earlier, this lab focuses on **trust**: proving that your application builds, starts, and behaves correctly every time you push code.
+
+## Debrief and context \{.no-step\}
+
+Before starting, take a moment to reflect:
+
+- You built a real Node.js application
+- You containerized it with Docker
+- You orchestrated services with Docker Compose
+- You may already have experimented with a minimal CI job
+
+This lab connects all of that work into a single automated validation pipeline.
+
+## Verify your starting point
+
+Ensure you are working from **your own GitHub fork** and that your repository contains:
+
+- A working Node.js application
+- A valid Dockerfile
+- A working Docker Compose setup
+- All recent changes pushed to GitHub
+
+Pull the latest changes locally:
+
+```bash
+git pull
+```
+
+## Introduce the CI workflow
+
+You will use **GitHub Actions** to define your pipeline as code.
+
+Create the workflow directory if it does not already exist:
+
+```bash
+mkdir -p .github/workflows
+```
+
+Create or edit the file named `ci.yaml` inside this directory.
+
+## Define pipeline triggers
+
+Configure the workflow so it runs on both pushes and pull requests.
+
+Start with the following content:
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+```
+
+This ensures validation runs whenever code is proposed or updated.
+
+## Define the build job
+
+Define a job that runs on a Linux runner:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+```
+
+All validation steps will live inside this job.
+
+## Check out the repository
+
+Add a step to fetch your repository contents:
+
+```yaml
+steps:
+  - name: Check out repository
+    uses: actions/checkout@v4
+```
+
+This is equivalent to cloning the repository locally.
+
+## Run fast checks
+
+Before building containers, validate the application dependencies.
+
+Add the following steps:
+
+```yaml
+  - name: Set up Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: "24"
+
+  - name: Install dependencies
+    working-directory: app
+    run: npm ci
+
+  - name: Run tests if present
+    working-directory: app
+    run: npm test --if-present
+```
+
+These steps fail fast if dependencies or tests are broken.
+
+## Build the Docker image
+
+Add a step to build the application image:
+
+```yaml
+  - name: Build Docker image
+    run: docker build -t quote-app -f docker/Dockerfile .
+```
+
+This verifies that your Dockerfile produces a valid image.
+
+## Run a container smoke test
+
+A successful build is not enough.  
+You must also prove that the container **starts and responds correctly**.
+
+Add the following steps:
+
+```yaml
+  - name: Run container
+    run: |
+      docker run -d --name quote-app -p 3000:3000 quote-app
+      for i in $(seq 1 30); do
+        if curl -fsS http://localhost:3000/health >/dev/null; then
+          echo "Health check passed"
+          exit 0
+        fi
+        sleep 1
+      done
+      echo "Health check failed"
+      docker logs quote-app || true
+      exit 1
+
+  - name: Stop container
+    if: always()
+    run: |
+      docker rm -f quote-app || true
+```
+
+This step validates runtime behavior, not just build success.
+
+## Observe the pipeline run
+
+Commit and push your changes:
+
+```bash
+git add .github/workflows/ci.yaml
+git commit -m "Add full CI pipeline"
+git push
+```
+
+Open the **Actions** tab in GitHub and observe:
+
+- Each pipeline step executing
+- Logs for dependency installation
+- Docker build output
+- Container startup and health check
+
+## Break the pipeline intentionally
+
+Introduce a small failure and observe how CI reacts.
+
+Examples:
+
+- Change the health check URL to a non-existent path
+- Introduce a syntax error in the Dockerfile
+- Break the application startup
+
+Commit and push, then observe:
+
+- The pipeline failing
+- Clear error logs
+- Automatic detection of broken changes
+
+Fix the issue and push again.
+
+## Understand what CI gives you \{.no-step\}
+
+At this point, your CI pipeline provides:
+
+- Automated build validation
+- Automated runtime verification
+- Fast feedback on every change
+- A shared signal for project health
+
+CI acts as a **gate**, preventing broken code from moving forward.
+
+## Optional challenge: extend the pipeline
+
+If you finish early, consider one or more of the following:
+
+- Split tests and build into separate jobs
+- Add a job that only runs on pull requests
+- Add linting to the fast checks
+- Run the pipeline against multiple Node versions
+
+Keep changes focused and incremental.
+
+## Wrap-up \{.no-step\}
+
+You have built a complete CI pipeline that:
+
+- Builds your application
+- Verifies dependencies
+- Confirms the container starts correctly
+
+This lab completes the graded work for the DevOps course.
+
+In the next course, you will take these same ideas further with orchestration, virtualization, and infrastructure-level automation.
