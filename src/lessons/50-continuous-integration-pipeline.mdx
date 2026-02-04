@@ -3,7 +3,6 @@ title: "50 Automating the Pipeline with Continuous Integration"
 slug: "50-ci-pipeline"
 description: "Build a real CI pipeline that validates your application build and runtime behavior."
 type: lab
-availableFrom: 2026-02-05
 ---
 
 In this lab, you will extend the work from the previous sessions and build a **real Continuous Integration pipeline** for your application.
@@ -198,16 +197,38 @@ At this point, your CI pipeline provides:
 
 CI acts as a **gate**, preventing broken code from moving forward.
 
-## Optional challenge: extend the pipeline
+## Extension lanes \{.no-step\}
 
-If you finish early, consider one or more of the following:
+These extensions are optional. Choose one lane and go as deep as you like.
 
-- Split tests and build into separate jobs
-- Add a job that only runs on pull requests
-- Add linting to the fast checks
-- Run the pipeline against multiple Node versions
+You may be asked to explain one extension you attempted during the final review.
 
-Keep changes focused and incremental.
+<details>
+  <summary><strong>Lane A: Reliability and runtime guarantees</strong></summary>
+
+  - Make the health check stricter (for example: verify expected content, not just HTTP 200)
+  - Fail the pipeline if startup takes too long (shorter retry window)
+  - Print more debugging info when the health check fails (container logs, `docker ps`, port checks)
+  - Explain what “healthy” should mean for your app in production
+</details>
+
+<details>
+  <summary><strong>Lane B: Code quality and validation</strong></summary>
+
+  - Add or extend tests in the `app` directory
+  - Ensure tests run in CI and fail the pipeline when they fail
+  - Add a lint step (only if you already have a lint script available)
+  - Explain what your tests do and do not guarantee
+</details>
+
+<details>
+  <summary><strong>Lane C: CI structure and signals</strong></summary>
+
+  - Split tests and Docker build into separate jobs
+  - Add a job that only runs on pull requests
+  - Use conditional steps to avoid repeating work
+  - Explain how your CI design would scale to a team project
+</details>
 
 ## Wrap-up \{.no-step\}
 
