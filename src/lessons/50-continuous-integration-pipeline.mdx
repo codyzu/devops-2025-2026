@@ -170,7 +170,10 @@ Open the **Actions** tab in GitHub and observe:
 
 ## Break the pipeline intentionally
 
-Introduce a small failure and observe how CI reacts.
+This step is **required for grading**.
+
+You must intentionally introduce a failure, observe a failing CI run on GitHub, then fix the issue and push a successful run.  
+During the final review, you may be asked to show the failing run and explain what caused it.
 
 Examples:
 
@@ -199,7 +202,10 @@ CI acts as a **gate**, preventing broken code from moving forward.
 
 ## Extension lanes \{.no-step\}
 
-These extensions are optional. Choose one lane and go as deep as you like.
+These extensions are optional in scope but **at least one extension item is required for grading**.
+
+Choose one lane and complete at least one concrete item from that lane.  
+You may go further if you wish.
 
 You may be asked to explain one extension you attempted during the final review.
 
@@ -237,6 +243,9 @@ You have built a complete CI pipeline that:
 - Builds your application
 - Verifies dependencies
 - Confirms the container starts correctly
+
+In larger systems, this stage is often extended with full end-to-end tests using browser-based tools such as Playwright.  
+This is intentionally out of scope here, but your current pipeline shows where such tests would fit in a real production workflow.
 
 This lab completes the graded work for the DevOps course.
 
