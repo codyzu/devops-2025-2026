@@ -1,0 +1,289 @@
+---
+title: "80 Architecture: Containers, VMs, and Hypervisors"
+type: slides
+slug: 80-architecture
+description: "The layers beneath Kubernetes: containers, VMs, hypervisors, and why virtualization still matters (cloud, embedded, automotive)."
+---
+import {Image} from 'astro:assets';
+import hero from '../assets/hero.png';
+import Icon from '../components/Icon.astro';
+
+
+<section>
+  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
+  ## <Icon name="i-tabler-layers" />Architecture: Containers, VMs, and Hypervisors
+  ### What runs Kubernetes (and why it matters)
+</section>
+
+<section>
+## <Icon name="i-tabler-flag" />Goal for this session
+
+By the end of this deck, you should be able to answer:
+
+- Where does Kubernetes sit in the stack?
+- What is the difference between containers and VMs?
+- What does a hypervisor do?
+- Why are hypervisors still used everywhere (cloud, embedded, automotive)?
+</section>
+
+<section>
+## <Icon name="i-tabler-road" />Where we are in the course
+
+You already know:
+
+- App + database
+- Containers
+- Compose
+- CI automation
+
+Now we zoom out:
+
+- Orchestration (Kubernetes)
+- The platform under the cluster (virtualization)
+</section>
+
+<section>
+## <Icon name="i-tabler-stack-3" />The full stack view
+
+Typical production stack:
+
+App → Container → Pod → Node → VM → Hypervisor → Hardware
+
+Kubernetes is not “the bottom”.
+It runs on top of an operating system.
+</section>
+
+<section>
+## <Icon name="i-tabler-box" />Container recap
+
+A container is:
+
+- A process (or a set of processes)
+- Isolated using Linux kernel features
+- Packaged with a filesystem and dependencies
+
+Key idea:
+- Containers share the same kernel.
+</section>
+
+<section>
+## <Icon name="i-tabler-shield" />Container isolation is real, but different
+
+Containers isolate:
+
+- filesystem
+- process tree
+- networking
+- resource limits (CPU, memory)
+
+But they do not change this:
+
+- Same kernel for everyone
+- Kernel bugs affect everyone
+</section>
+
+<section>
+## <Icon name="i-tabler-device-desktop" />What is a VM?
+
+A Virtual Machine is:
+
+- A full operating system (its own kernel)
+- Running as a guest on a hypervisor
+- With virtual CPU, memory, storage, and devices
+
+Key idea:
+- VMs isolate at the kernel boundary.
+</section>
+
+<section>
+## <Icon name="i-tabler-scale" />Containers vs VMs (quick comparison)
+
+Containers:
+- fast startup
+- lightweight
+- share the host kernel
+
+VMs:
+- stronger isolation
+- different kernels possible
+- heavier, but very flexible
+
+Neither is “better”.
+They solve different problems.
+</section>
+
+<section>
+## <Icon name="i-tabler-cpu" />What is a hypervisor?
+
+A hypervisor is the software layer that:
+
+- shares hardware between VMs
+- provides virtual CPUs and devices
+- enforces isolation between guests
+- manages scheduling and memory
+
+Think: “traffic controller” for virtual machines.
+</section>
+
+<section>
+## <Icon name="i-tabler-layers-intersect" />Type 1 vs Type 2 (high level)
+
+Type 1 (bare metal):
+- runs directly on hardware
+- common in servers and embedded
+
+Type 2 (hosted):
+- runs as an app on a host OS
+- common on laptops (VirtualBox)
+
+We care mostly about Type 1 in production.
+</section>
+
+<section>
+## <Icon name="i-tabler-brand-docker" />Where Kubernetes nodes usually run
+
+In most clouds:
+
+- Each Kubernetes node is a VM
+- Your Pods run inside containers
+- Those containers run on a kernel inside that VM
+
+So the isolation boundary is often:
+
+Pod → container → VM → hypervisor → hardware
+</section>
+
+<section>
+## <Icon name="i-tabler-cloud" />Why cloud providers love VMs
+
+VMs make cloud operations easier:
+
+- strong tenant isolation
+- per-customer quotas and limits
+- live migration and maintenance workflows
+- predictable billing units
+
+Even when you use containers, the cloud is still virtualized.
+</section>
+
+<section>
+## <Icon name="i-tabler-car" />Why virtualization matters in automotive
+
+In automotive systems you often need:
+
+- mixed-criticality workloads
+- isolation between safety and non-safety domains
+- secure separation of supplier components
+- predictable scheduling and resource control
+
+A hypervisor lets multiple OSes share one SoC safely.
+</section>
+
+<section>
+## <Icon name="i-tabler-circuit-board" />Embedded and edge
+
+At the edge, virtualization helps when you need:
+
+- multiple workloads on limited hardware
+- OTA updates without bricking the system
+- isolation between apps from different teams
+- long-lived systems with strict stability needs
+
+It is not only a data center story.
+</section>
+
+<section>
+## <Icon name="i-tabler-lock" />Security view: isolation boundaries
+
+When you choose an isolation boundary, ask:
+
+- what can escape?
+- what is the blast radius?
+- who controls the kernel?
+
+Typical boundaries (weak → strong):
+
+process → container → VM → hardware partition
+</section>
+
+<section>
+## <Icon name="i-tabler-bolt" />Performance view
+
+Virtualization used to be “slow”.
+Modern hardware support changed that.
+
+Today, virtualization is often:
+
+- close to native performance
+- predictable and measurable
+- good enough for production at scale
+
+The tradeoff is mostly operational, not raw speed.
+</section>
+
+<section>
+## <Icon name="i-tabler-arrow-guide" />Where this connects to our labs
+
+In our labs, you will notice:
+
+- your cluster is “somewhere”
+- it has nodes
+- nodes have CPU and memory constraints
+- failures happen at different layers
+
+Good debugging starts by asking:
+“What layer am I in right now?”
+</section>
+
+<section>
+## <Icon name="i-tabler-eye" />Observability by layer
+
+When something fails, pick the layer:
+
+- App logs (inside container)
+- Pod / Deployment status (Kubernetes)
+- Node resources (CPU, memory pressure)
+- VM / host limits (virtualization)
+- Physical hardware / network
+
+The symptom shows up at one layer.
+The cause may be below it.
+</section>
+
+<section>
+## <Icon name="i-tabler-brain" />Mini discussion
+
+Pick one:
+
+- When would you choose a VM over a container?
+- What is one risk containers do not solve?
+- Why might an automotive platform choose a hypervisor?
+
+We want reasoning, not buzzwords.
+</section>
+
+<section>
+## <Icon name="i-tabler-checklist" />What I care about today
+
+I am not grading “hypervisor facts”.
+
+I care that you can:
+
+- place each technology in the stack
+- explain why it exists
+- name the tradeoff it makes
+- identify what it does not solve
+</section>
+
+<section>
+## <Icon name="i-tabler-player-play" />Back to the lab
+
+Next, we will:
+
+- deploy to Kubernetes
+- break things
+- debug with get / describe / logs
+
+Keep the stack in mind.
+It will make debugging easier.
+</section>

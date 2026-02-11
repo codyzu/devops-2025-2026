@@ -1,0 +1,342 @@
+---
+title: "70 From Compose to Kubernetes"
+type: slides
+slug: 70-kubernetes
+description: "From Docker Compose to Kubernetes: orchestration, desired state, and self-healing."
+---
+import {Image} from 'astro:assets';
+import hero from '../assets/hero.png';
+import Icon from '../components/Icon.astro';
+
+
+<section>
+  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
+  ## <Icon name="i-tabler-box" />From Compose to Kubernetes
+  ### Virtualisation avancée (Course 2)
+</section>
+
+<section>
+## <Icon name="i-tabler-terminal" />Where we left off
+
+Last course, you built a real app and automated it:
+
+- Git workflow
+- Docker image
+- Docker Compose
+- CI pipeline with a runtime check
+
+Today: we go from **one machine** to **cluster thinking**.
+</section>
+
+<section>
+## <Icon name="i-tabler-target" />Goals for today
+
+By the end of these two sessions, you should be able to:
+
+- Explain why Kubernetes exists
+- Deploy our app to a local cluster
+- Scale it
+- Break it (on purpose) and recover
+- Debug using the right signals: status, events, logs
+</section>
+
+<section>
+## <Icon name="i-tabler-clock" />Plan for the day
+
+Session 1 (now):
+- Kubernetes mental model
+- Lab: first deployment + service + scaling
+
+Session 2 (later today):
+- What runs Kubernetes (virtualization layer)
+- Operating mindset: updates, failures, debugging
+</section>
+
+<section>
+## <Icon name="i-tabler-stack-2" />Docker Compose is great
+
+Compose is perfect when:
+
+- You own the machine
+- You deploy once, then leave it alone
+- Restarting manually is fine
+- Scaling means “run two copies myself”
+</section>
+
+<section>
+## <Icon name="i-tabler-alert-triangle" />Compose limits
+
+Compose does not give you:
+
+- Scheduling across machines
+- Self-healing across failures
+- A consistent model for rolling updates
+- A control plane that watches and reconciles state
+</section>
+
+<section>
+## <Icon name="i-tabler-cow" />Pets vs Cattle
+
+Pets:
+- Unique
+- Named
+- Manually cared for
+
+Cattle:
+- Replaceable
+- Disposable
+- Recreated automatically
+
+Kubernetes treats Pods like cattle.
+State should live outside the container.
+</section>
+
+<section>
+## <Icon name="i-tabler-bulb" class="translate-y-[-0.1em]" />So what is Kubernetes?
+
+Kubernetes is a system that:
+
+- Keeps your apps running
+- Tries to match **desired state** to **actual state**
+- Continuously reconciles the difference
+
+You describe *what you want*.
+Kubernetes does the repetitive work.
+</section>
+
+<section>
+## <Icon name="i-tabler-refresh" />The control loop idea
+
+Desired state:
+- “I want 3 copies of this app running”
+
+Actual state:
+- “Only 2 are running right now”
+
+Controller loop:
+- “Start 1 more”
+
+This loop never stops.
+</section>
+
+<section>
+## <Icon name="i-tabler-cube" />Core objects we will use
+
+Keep it simple:
+
+- **Pod**: the smallest unit that runs
+- **Deployment**: manages replicas and updates
+- **Service**: stable networking to reach the app
+
+We will ignore the rest for now.
+</section>
+
+<section>
+## <Icon name="i-tabler-package" />Pod: the unit of execution
+
+A Pod is:
+
+- One or more containers that run together
+- Shared networking inside the Pod
+- Usually short-lived, replaceable
+
+Key idea:
+- You do not manage Pods manually in production
+</section>
+
+<section>
+## <Icon name="i-tabler-repeat" />Deployment: desired state for Pods
+
+A Deployment lets you say:
+
+- Which image to run
+- How many replicas you want
+- How updates should roll out
+
+It creates and replaces Pods for you.
+</section>
+
+<section>
+## <Icon name="i-tabler-hierarchy" />Controller hierarchy
+
+Deployment
+→ ReplicaSet
+→ Pod
+
+You interact with the Deployment.
+The Deployment manages ReplicaSets.
+The ReplicaSet ensures the right number of Pods exist.
+
+If a Pod disappears, the ReplicaSet creates a new one.
+</section>
+
+<section>
+## <Icon name="i-tabler-network" />Service: stable access
+
+Pods come and go.
+IPs change.
+A Service gives you:
+
+- A stable name
+- A stable virtual IP
+- Load balancing to the current Pods
+
+Today we will use a simple local Service.
+</section>
+
+<section>
+## <Icon name="i-tabler-file-code" />Everything is “configuration as code”
+
+Kubernetes is declarative.
+
+You apply YAML, for example:
+
+- deployment.yaml
+- service.yaml
+
+You can version it in git, review it, and automate it in CI.
+</section>
+
+<section>
+## <Icon name="i-tabler-arrows-exchange" />Imperative vs Declarative
+
+Imperative:
+- “Run this container now.”
+- One-time command
+
+Declarative:
+- “This should exist.”
+- System keeps it true over time
+
+Example:
+- `kubectl run` → imperative
+- `kubectl apply -f deployment.yaml` → declarative
+
+Kubernetes is primarily declarative.
+</section>
+
+<section>
+## <Icon name="i-tabler-terminal-2" />The only commands you really need today
+
+You will mostly use:
+
+- `kubectl get ...`
+- `kubectl describe ...`
+- `kubectl logs ...`
+- `kubectl apply -f ...`
+- `kubectl delete ...`
+- `kubectl scale ...`
+
+If you learn nothing else, learn these.
+</section>
+
+<section>
+## <Icon name="i-tabler-eye" />How to observe what is happening
+
+When something is wrong, check in this order:
+
+- Status: `kubectl get`
+- Details and events: `kubectl describe`
+- Application output: `kubectl logs`
+
+This is your debugging loop.
+</section>
+
+<section>
+## <Icon name="i-tabler-tools" />Lab setup
+
+We will use a local Kubernetes cluster.
+
+- If the lab machines support Docker: we use **kind**
+- If not: we use a pre-configured VM option
+
+Your job is not to fight installation.
+Your job is to learn the model.
+</section>
+
+<section>
+## <Icon name="i-tabler-rocket" />Lab tasks
+
+In the lab, you will:
+
+- Apply the Deployment YAML
+- Apply the Service YAML
+- Confirm `/health` responds
+- Scale replicas up and down
+- Delete a Pod and watch it recover
+</section>
+
+<section>
+## <Icon name="i-tabler-bug" />Intentional failure
+
+You will intentionally create a failure:
+
+- Use a bad image tag
+- Or break the container port
+
+Then you will:
+
+- Observe the failure
+- Explain it
+- Fix it and re-apply
+</section>
+
+<section>
+## <Icon name="i-tabler-clipboard-check" />What I will check today
+
+During the session, I may ask you to show:
+
+- A working deployment (running Pods)
+- A Service that routes to your Pods
+- A scaling change you made
+- One failure you caused and understood
+
+Understanding is more important than speed.
+</section>
+
+<section>
+## <Icon name="i-tabler-layers-difference" />What runs Kubernetes?
+
+Kubernetes is not the bottom of the stack.
+
+Typical production stack:
+
+App → Container → Pod → Node → VM → Hypervisor → Hardware
+
+In most real environments:
+- Nodes are virtual machines
+- VMs run on a hypervisor
+- The hypervisor isolates workloads
+
+Virtualization still matters:
+- Cloud and data centers
+- Embedded systems
+- Automotive and mixed-criticality platforms
+
+We will explore this layer in Session 2.
+</section>
+
+<section>
+## <Icon name="i-tabler-question-mark" />Quick check-in
+
+Before the lab:
+
+- Have you used Kubernetes before?
+- If yes: what did you use it for?
+- If no: what do you expect it to do?
+
+We will keep it practical.
+</section>
+
+<section>
+## <Icon name="i-tabler-player-play" />Let’s start the lab
+
+- Open the course website
+- Go to **Lab 70**
+- Work in your own GitHub fork
+- Ask questions early
+
+When you finish:
+- help a neighbor
+- or pick a stretch goal from the lab
+</section>

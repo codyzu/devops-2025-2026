@@ -1,0 +1,488 @@
+---
+title: "75 Kubernetes Deployment and Runtime Validation"
+slug: "75-kubernetes-deployment-runtime-validation"
+description: "Deploy your application to Kubernetes and validate runtime behavior, resilience, and observability."
+type: lab
+---
+
+In this lab, you will deploy your containerized application to Kubernetes and validate that it behaves correctly under real orchestration conditions.
+
+You will move from **single-container execution** to **cluster-managed execution**.
+
+## Context and goals \{.no-step\}
+
+So far, you have:
+
+- Built a Node.js application
+- Containerized it with Docker
+- Orchestrated services with Docker Compose
+- Automated validation using CI
+
+In this lab, you will:
+
+- Deploy your application to Kubernetes
+- Expose it via a Service
+- Validate runtime behavior
+- Simulate failures
+- Explore scaling and resilience
+
+This lab is intentionally deep.
+Core sections are required.
+At least one extension lane item is required for grading.
+
+---
+
+## Verify your environment
+
+Your goal is to end up with a working Kubernetes cluster and `kubectl` access.
+
+For this lab, you must use **k3s on the course Ubuntu Server VM**.
+
+If you are working on a personal machine, consult the official documentation for your chosen Kubernetes distribution, but the lab instructions assume k3s on Ubuntu Server.
+
+At the end of setup, this must work:
+
+```bash
+kubectl get nodes
+```
+
+You must see at least one node in `Ready` state.
+
+### Install k3s on the course VM (recommended) \{.no-step\}
+
+<details>
+  <summary><strong>Click to expand: k3s + kubectl setup on Ubuntu Server</strong></summary>
+
+  Run these commands inside your Ubuntu VM.
+
+  ```bash
+  # Update packages
+  sudo apt update
+
+  # Install k3s (single-node cluster)
+  curl -sfL https://get.k3s.io | sh -
+
+  # Add your user to the k3s group so you can run kubectl without sudo
+  sudo usermod -aG k3s $USER
+
+  # Create a kubeconfig in your home directory
+  mkdir -p "$HOME/.kube"
+  sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+  sudo chown "$USER:$USER" "$HOME/.kube/config"
+
+  # Make kubectl use the local config
+  export KUBECONFIG="$HOME/.kube/config"
+
+  # Verify
+  kubectl get nodes
+  kubectl get pods -A
+  ```
+
+  Notes:
+  - If `kubectl` says “permission denied”, log out and back in (group membership refresh).
+  - If you want a clean restart later:
+
+  ```bash
+  sudo systemctl restart k3s
+  ```
+</details>
+
+### Tools checklist \{.no-step\}
+
+<details>
+  <summary><strong>Click to expand: tools you should have</strong></summary>
+
+  You should have:
+  - `kubectl`
+  - `docker` (for building the image)
+
+  On the course VM:
+  - `kubectl` is provided by k3s (it installs a `kubectl` binary)
+  - Docker should already be available from earlier labs
+
+  Quick checks:
+
+  ```bash
+  kubectl version --client
+  docker version
+  ```
+</details>
+
+---
+
+## Create a dedicated namespace
+
+Create a namespace for this lab:
+
+```bash
+kubectl create namespace quote-lab
+```
+
+Set it as default for your session:
+
+```bash
+kubectl config set-context --current --namespace=quote-lab
+```
+
+Verify:
+
+```bash
+kubectl get pods
+```
+
+---
+
+## Build and tag your image for Kubernetes
+
+Build your Docker image locally:
+
+```bash
+docker build -t quote-app:local -f docker/Dockerfile .
+```
+
+<details>
+  <summary><strong>Image note for k3s</strong></summary>
+
+k3s uses containerd by default.
+
+For this lab, use the image workflow recommended in class.  
+If your cluster cannot access your local Docker images directly, you may need to:
+
+- Tag the image appropriately
+- Push it to a registry
+- Or import it into containerd
+
+We will keep the focus on Kubernetes behavior rather than image distribution mechanics.
+</details>
+
+<details>
+  <summary><strong>Fallback: ImagePullBackOff or image not found</strong></summary>
+
+  If your pod status shows `ImagePullBackOff`, Kubernetes cannot find your local Docker image.
+
+  k3s uses containerd internally. Your Docker image store is separate.
+
+  Import your image into k3s:
+
+  ```bash
+  docker save quote-app:local | sudo k3s ctr images import -
+  ```
+
+  Verify the image exists inside k3s:
+
+  ```bash
+  sudo k3s ctr images list | grep quote-app
+  ```
+
+  Then restart your deployment:
+
+  ```bash
+  kubectl rollout restart deployment quote-app
+  kubectl get pods -w
+  ```
+
+  If you are unsure whether the cluster itself works, deploy a simple public image:
+
+  ```bash
+  kubectl create deployment nginx-test --image=nginx
+  kubectl expose deployment nginx-test --port=80 --type=ClusterIP
+  kubectl get pods
+  ```
+
+  If nginx runs successfully, your cluster is healthy and the issue is only image distribution.
+</details>
+
+If using another environment, adjust accordingly.
+
+---
+
+## Create a Deployment
+
+Create a file named `deployment.yaml` with the following content:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quote-app
+  template:
+    metadata:
+      labels:
+        app: quote-app
+    spec:
+      containers:
+        - name: quote-app
+          image: quote-app:local
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+```
+
+Apply it:
+
+```bash
+kubectl apply -f deployment.yaml
+```
+
+Observe:
+
+```bash
+kubectl get pods
+kubectl describe pod <pod-name>
+```
+
+---
+
+## Expose the application with a Service
+
+Create `service.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-app
+spec:
+  selector:
+    app: quote-app
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
+```
+
+Apply it:
+
+```bash
+kubectl apply -f service.yaml
+```
+
+Verify:
+
+```bash
+kubectl get svc
+```
+
+---
+
+## Access the application
+
+Use port-forwarding:
+
+```bash
+kubectl port-forward svc/quote-app 8080:80
+```
+
+Open:
+
+```
+http://localhost:8080
+```
+
+Verify that:
+
+- The app loads
+- The health endpoint responds
+- Basic routes function correctly
+
+---
+
+## Validate readiness behavior
+
+Delete the running pod:
+
+```bash
+kubectl delete pod <pod-name>
+```
+
+Observe:
+
+```bash
+kubectl get pods -w
+```
+
+Confirm:
+
+- A new pod is created automatically
+- The Service continues routing traffic
+- Downtime is minimal
+
+---
+
+## Scale the Deployment
+
+Scale to multiple replicas:
+
+```bash
+kubectl scale deployment quote-app --replicas=3
+```
+
+Observe:
+
+```bash
+kubectl get pods
+```
+
+Confirm:
+
+- Three pods are running
+- All are Ready
+
+Discuss:
+
+- What does scaling change?
+- What does it not change?
+
+---
+
+## Introduce a controlled failure
+
+This step is required for grading.
+
+Modify your deployment to intentionally break readiness.
+
+Examples:
+
+- Change readinessProbe path to a non-existent endpoint
+- Use the wrong container port
+- Set an invalid image tag
+
+Apply the change and observe:
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl get pods
+kubectl describe pod <pod-name>
+```
+
+Confirm:
+
+- Pods fail readiness
+- Traffic is not routed
+- Kubernetes reports the failure
+
+Restore the correct configuration.
+
+---
+
+## Inspect logs and events
+
+Inspect application logs:
+
+```bash
+kubectl logs <pod-name>
+```
+
+Inspect cluster events:
+
+```bash
+kubectl get events
+```
+
+Observe how Kubernetes surfaces runtime issues.
+
+---
+
+## Extension lanes \{.no-step\}
+
+At least one extension item is required for grading.
+You may complete more for additional distinction.
+
+<details>
+  <summary><strong>Lane A: Resource management and limits</strong></summary>
+
+  - Add resource requests and limits to the container
+  - Observe scheduling behavior
+  - Simulate memory pressure
+  - Explain how limits protect cluster stability
+</details>
+
+<details>
+  <summary><strong>Lane B: Liveness probes</strong></summary>
+
+  - Add a livenessProbe
+  - Simulate an internal failure
+  - Observe container restarts
+  - Explain readiness vs liveness differences
+</details>
+
+<details>
+  <summary><strong>Lane C: Configuration management</strong></summary>
+
+  - Move configuration to a ConfigMap
+  - Inject environment variables
+  - Change config without rebuilding the image
+  - Explain why immutable images matter
+</details>
+
+<details>
+  <summary><strong>Lane D: Database integration</strong></summary>
+
+  - Deploy PostgreSQL inside Kubernetes
+  - Use a Service for connectivity
+  - Add a PersistentVolumeClaim
+  - Validate data persistence across restarts
+</details>
+
+<details>
+  <summary><strong>Lane E: Horizontal scaling reasoning</strong></summary>
+
+  - Simulate traffic load
+  - Observe CPU usage
+  - Discuss what HPA would require
+  - Explain why autoscaling depends on metrics
+</details>
+
+<details>
+  <summary><strong>Lane F: Multi-stage validation</strong></summary>
+
+  - Create separate namespaces for dev and staging
+  - Deploy different versions
+  - Compare behaviors
+  - Explain how this fits into CI/CD pipelines
+</details>
+
+---
+
+## Reflect on orchestration \{.no-step\}
+
+Answer the following verbally during review:
+
+- What does Kubernetes automate?
+- What remains your responsibility?
+- What signals determine application health?
+- How does this differ from Docker Compose?
+
+---
+
+## Wrap-up \{.no-step\}
+
+You have:
+
+- Deployed an application to Kubernetes
+- Exposed it with a Service
+- Validated runtime behavior
+- Simulated failures
+- Explored scaling and resilience
+
+This completes the practical orchestration portion of the course.
+
+In larger systems, this foundation expands to:
+
+- Ingress controllers
+- Service meshes
+- Observability stacks
+- GitOps workflows
+- Infrastructure automation
+
+You now understand the core control loop that powers modern cloud-native systems.

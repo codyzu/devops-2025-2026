@@ -1,0 +1,427 @@
+---
+title: "85 Architecture, Virtualization, and Production Design"
+slug: "85-architecture-production-design"
+description: "Design and analyze a production-ready architecture using containers, Kubernetes, and virtualization concepts."
+type: lab
+---
+
+## Introduction \{.no-step\}
+
+In this lab, you will step back from implementation details and think like a systems designer.
+
+You will:
+
+- Analyze application architecture
+- Compare containers and virtual machines
+- Design a production-ready deployment
+- Introduce scaling, resilience, and failure thinking
+- Connect Kubernetes to real-world infrastructure
+
+This lab is intentionally deeper and more open-ended than previous ones.
+
+You are expected to reason, discuss, and justify your decisions.
+
+---
+
+## Review your current deployment
+
+Before designing something larger, verify your current Kubernetes setup.
+
+Run:
+
+```bash
+kubectl get pods
+kubectl get services
+kubectl get deployments
+```
+
+Confirm:
+
+- Your quote application is running
+- The database is reachable
+- You can port-forward successfully
+
+If something is broken, fix it now.
+
+You will build on this foundation.
+
+---
+
+## Map the current architecture
+
+Create a simple architecture diagram on paper or digitally.
+
+Your diagram must include:
+
+- User / browser
+- Kubernetes cluster
+- Deployment
+- Pod
+- Service
+- PostgreSQL database
+
+Answer in writing:
+
+- Where does isolation happen?
+- What restarts automatically?
+- What does Kubernetes *not* manage?
+
+Be prepared to explain your diagram.
+
+---
+
+## Compare containers and virtual machines
+
+Create a comparison table with at least five differences.
+
+Topics to consider:
+
+- Kernel sharing
+- Startup time
+- Resource overhead
+- Security isolation
+- Operational complexity
+
+Then answer:
+
+- When would you prefer a VM over a container?
+- When would you combine both?
+
+Write your answers in a file named:
+
+```bash
+architecture-notes.md
+```
+
+Commit and push your reasoning.
+
+---
+
+## Introduce horizontal scaling
+
+Scale your deployment.
+
+```bash
+kubectl scale deployment quote-app --replicas=3
+```
+
+Verify:
+
+```bash
+kubectl get pods
+```
+
+You should see multiple replicas.
+
+Now test behavior:
+
+- Port-forward the service
+- Refresh the page multiple times
+
+Observe whether responses appear consistent.
+
+Answer:
+
+- What changes when you scale?
+- What does not change?
+
+---
+
+## Simulate failure
+
+Delete one running pod.
+
+```bash
+kubectl delete pod <pod-name>
+```
+
+Immediately observe:
+
+```bash
+kubectl get pods
+```
+
+Answer:
+
+- Who recreated the pod?
+- Why?
+- What would happen if the node itself failed?
+
+Write your answers in `architecture-notes.md`.
+
+---
+
+## Introduce resource limits
+
+Edit your deployment and add resource constraints.
+
+Add under the container spec:
+
+```yaml
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+```
+
+Apply the updated manifest.
+
+Observe:
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+Answer:
+
+- What are requests vs limits?
+- Why are they important in multi-tenant systems?
+
+---
+
+## Add readiness and liveness probes
+
+Enhance your deployment with health checks.
+
+Example:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+```
+
+Apply and observe behavior.
+
+Break your app temporarily to see how probes react.
+
+Answer:
+
+- What is the difference between readiness and liveness?
+- Why does this matter in production?
+
+---
+
+## Connect Kubernetes to virtualization \{.no-step\}
+
+Discuss and write answers:
+
+- What runs underneath your k3s cluster?
+- Is Kubernetes replacing virtualization?
+- In a cloud provider, what actually hosts your nodes?
+
+Explain how this stack might look in:
+
+- A cloud data center
+- An embedded automotive system
+- A financial institution
+
+Add this section to `architecture-notes.md`.
+
+---
+
+## Design a production architecture
+
+Create a new section in `architecture-notes.md`.
+
+Design a production-ready version of this system.
+
+Include:
+
+- Multiple nodes
+- Database persistence
+- Backup strategy
+- Monitoring
+- Logging
+- CI/CD pipeline integration
+
+Answer clearly:
+
+- What would run in Kubernetes?
+- What would run in VMs?
+- What would run outside the cluster?
+
+This is a graded reasoning exercise.
+
+---
+
+## Required break and analysis
+
+Introduce a controlled failure in your deployment.
+
+Examples:
+
+- Set an invalid image name
+- Remove environment variables
+- Misconfigure resource limits
+
+Apply and observe the failure.
+
+Capture:
+
+```bash
+kubectl describe pod <pod-name>
+kubectl get events
+```
+
+Then fix the issue.
+
+You must show at least one failed state in the Kubernetes events.
+
+---
+
+## Required extension: secret-based configuration
+
+This extension is required for everyone.
+
+Refactor your database credentials so they are not stored in plain text inside your deployment manifest.
+
+### Create a Secret
+
+Create a secret for your database credentials:
+
+```bash
+kubectl create secret generic quote-db-secret \
+  --from-literal=POSTGRES_USER=quote \
+  --from-literal=POSTGRES_PASSWORD=quote
+```
+
+### Reference the Secret in your deployment
+
+Modify your Deployment manifest so environment variables are loaded from the Secret instead of hard-coded values.
+
+Example structure:
+
+```yaml
+env:
+  - name: POSTGRES_USER
+    valueFrom:
+      secretKeyRef:
+        name: quote-db-secret
+        key: POSTGRES_USER
+  - name: POSTGRES_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: quote-db-secret
+        key: POSTGRES_PASSWORD
+```
+
+Apply your changes and verify the application still works.
+
+Answer in `architecture-notes.md`:
+
+- Why is this better than plain-text configuration?
+- Is a Secret encrypted by default? Where?
+
+Commit and push your changes.
+
+---
+
+## Extension lane: multi-node simulation
+
+If time allows:
+
+- Add an additional worker node (if environment supports it)
+- Observe pod scheduling behavior
+- Describe how Kubernetes chooses nodes
+
+Research and document your findings.
+
+---
+
+## Extension lane: database hardening
+
+Modify your database setup:
+
+- Use a Kubernetes Secret for credentials
+- Mount environment variables from the secret
+- Avoid plain-text passwords in manifests
+
+Verify the app still works.
+
+---
+
+## Extension lane: autoscaling exploration
+
+Research Horizontal Pod Autoscaler (HPA).
+
+Document:
+
+- What metrics are required
+- Why metrics-server is needed
+- How autoscaling differs from manual scaling
+
+No full implementation required unless you complete all prior tasks.
+
+---
+
+## Extension lane: architecture critique
+
+Write a short critique of your own design.
+
+Include:
+
+- Single points of failure
+- Operational risks
+- Security concerns
+- Observability gaps
+
+Be honest and precise.
+
+---
+
+## 🐉 Beast Mode: production realism challenge
+
+This lane is intentionally difficult.
+
+Attempt this only after completing all required work.
+
+Choose ONE of the following challenges:
+
+- Add a NetworkPolicy that restricts which pods can talk to the database.
+- Split your application and database into separate namespaces and update access rules.
+- Add a basic Ingress resource and explain how it would connect to a real load balancer.
+- Simulate a rolling update and observe rollout history.
+
+For your chosen challenge:
+
+- Implement it as far as your environment allows.
+- Document what worked and what did not.
+- Explain what would change in a real multi-node production cluster.
+
+Add a dedicated section in `architecture-notes.md` titled:
+
+```
+Beast Mode Challenge
+```
+
+This section is used for differentiation in grading.
+
+---
+
+## Wrap-up reflection \{.no-step\}
+
+Before leaving, ensure:
+
+- Your manifests are committed
+- `architecture-notes.md` is pushed
+- You can explain your design verbally
+
+This session is about thinking like an engineer responsible for production systems.
+
+Speed is not the goal.
+
+Clarity and reasoning are.
