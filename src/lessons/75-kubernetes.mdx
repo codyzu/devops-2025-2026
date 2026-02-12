@@ -176,12 +176,15 @@ We will keep the focus on Kubernetes behavior rather than image distribution mec
   sudo k3s ctr images list | grep quote-app
   ```
 
-  Then restart your deployment:
+  If you have already applied the Deployment, force Kubernetes to retry by deleting the failing pod:
 
   ```bash
-  kubectl rollout restart deployment quote-app
+  kubectl get pods
+  kubectl delete pod <pod-name>
   kubectl get pods -w
   ```
+
+  If you have not created the Deployment yet, continue the lab and apply your manifests first.
 
   If you are unsure whether the cluster itself works, deploy a simple public image:
 
