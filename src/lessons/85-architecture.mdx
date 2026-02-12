@@ -331,31 +331,52 @@ Commit and push your changes.
 
 ---
 
-## Extension lane: multi-node simulation
+## Optional extension lanes \{.no-step\}
 
-If time allows:
+The following lanes are optional unless specified by your instructor.
 
-- Add an additional worker node (if environment supports it)
+Choose one or more depending on your pace.
+
+<details>
+<summary>Multi-node simulation</summary>
+
+If your environment supports it:
+
+- Add an additional worker node
 - Observe pod scheduling behavior
-- Describe how Kubernetes chooses nodes
+- Run:
 
-Research and document your findings.
+```bash
+kubectl get nodes
+kubectl get pods -o wide
+```
 
----
+Document:
 
-## Extension lane: database hardening
+- How pods are distributed
+- How Kubernetes chooses nodes
+- What happens when a node becomes unavailable
 
-Modify your database setup:
+</details>
 
-- Use a Kubernetes Secret for credentials
-- Mount environment variables from the secret
+<details>
+<summary>Database hardening</summary>
+
+Improve the security posture of your database deployment:
+
+- Ensure credentials come from a Kubernetes Secret
 - Avoid plain-text passwords in manifests
+- Verify environment variables are injected correctly
 
-Verify the app still works.
+Explain:
 
----
+- Why Secrets are preferable to ConfigMaps for credentials
+- Where Secret data is stored in the cluster
 
-## Extension lane: autoscaling exploration
+</details>
+
+<details>
+<summary>Autoscaling exploration</summary>
 
 Research Horizontal Pod Autoscaler (HPA).
 
@@ -364,12 +385,14 @@ Document:
 - What metrics are required
 - Why metrics-server is needed
 - How autoscaling differs from manual scaling
+- What would be required in a real production cluster
 
-No full implementation required unless you complete all prior tasks.
+Implementation is optional unless you complete all required tasks early.
 
----
+</details>
 
-## Extension lane: architecture critique
+<details>
+<summary>Architecture critique</summary>
 
 Write a short critique of your own design.
 
@@ -380,21 +403,20 @@ Include:
 - Security concerns
 - Observability gaps
 
-Be honest and precise.
+Be precise and realistic.
 
----
+</details>
 
-## 🐉 Beast Mode: production realism challenge
-
-This lane is intentionally difficult.
+<details>
+<summary>🐉 Beast Mode: production realism challenge</summary>
 
 Attempt this only after completing all required work.
 
-Choose ONE of the following challenges:
+Choose ONE of the following:
 
 - Add a NetworkPolicy that restricts which pods can talk to the database.
-- Split your application and database into separate namespaces and update access rules.
-- Add a basic Ingress resource and explain how it would connect to a real load balancer.
+- Split application and database into separate namespaces and update access rules.
+- Add a basic Ingress resource and explain how it connects to a real load balancer.
 - Simulate a rolling update and observe rollout history.
 
 For your chosen challenge:
@@ -409,7 +431,7 @@ Add a dedicated section in `architecture-notes.md` titled:
 Beast Mode Challenge
 ```
 
-This section is used for differentiation in grading.
+</details>
 
 ---
 
