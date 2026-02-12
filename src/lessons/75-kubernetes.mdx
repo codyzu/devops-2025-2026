@@ -59,28 +59,22 @@ You must see at least one node in `Ready` state.
   # Update packages
   sudo apt update
 
-  # Install k3s (single-node cluster)
-  curl -sfL https://get.k3s.io | sh -
+  # Install k3s (single-node cluster) and make kubeconfig readable
+  curl -sfL https://get.k3s.io | \
+    INSTALL_K3S_EXEC="server --write-kubeconfig-mode 644" sh -
 
-  # Add your user to the k3s group so you can run kubectl without sudo
-  sudo usermod -aG k3s $USER
+  # Point kubectl to the k3s kubeconfig
+  export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-  # Create a kubeconfig in your home directory
-  mkdir -p "$HOME/.kube"
-  sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
-  sudo chown "$USER:$USER" "$HOME/.kube/config"
-
-  # Make kubectl use the local config
-  export KUBECONFIG="$HOME/.kube/config"
-
-  # Verify
+  # Verify cluster access
   kubectl get nodes
   kubectl get pods -A
   ```
 
   Notes:
-  - If `kubectl` says “permission denied”, log out and back in (group membership refresh).
-  - If you want a clean restart later:
+  - No user group modification is required.
+  - If kubectl cannot access the cluster, verify that the KUBECONFIG variable is set.
+  - To restart k3s:
 
   ```bash
   sudo systemctl restart k3s
