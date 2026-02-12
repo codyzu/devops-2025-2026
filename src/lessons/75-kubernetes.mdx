@@ -67,6 +67,12 @@ You must see at least one node in `Ready` state.
   mkdir -p "$HOME/.kube"
   cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
 
+  # Ensure kubectl uses your local kubeconfig
+  export KUBECONFIG="$HOME/.kube/config"
+
+  # Persist for future sessions
+  echo 'export KUBECONFIG="$HOME/.kube/config"' >> ~/.bashrc
+
   # Verify cluster access
   kubectl get nodes
   kubectl get pods -A
@@ -74,6 +80,7 @@ You must see at least one node in `Ready` state.
 
   Notes:
   - No user group modification is required.
+  - `kubectl` must use your local `$HOME/.kube/config`.
   - Do not use `sudo kubectl` for this lab.
   - To restart k3s:
 
