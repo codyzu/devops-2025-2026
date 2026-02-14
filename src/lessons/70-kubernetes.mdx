@@ -15,7 +15,7 @@ import Icon from '../components/Icon.astro';
   ### Virtualisation avancée (Course 2)
 </section>
 
-<section>
+<section class="title-center-body-left">
 ## <Icon name="i-tabler-terminal" />Where we left off
 
 Last course, you built a real app and automated it:
@@ -40,22 +40,27 @@ By the end of these two sessions, you should be able to:
 - Debug using the right signals: status, events, logs
 </section>
 
-<section>
+<section class="title-center-body-left">
 ## <Icon name="i-tabler-clock" />Plan for the day
 
-Session 1 (now):
+<div className="r-vstack gap-8">
+<div>
+<p class="block-title">Session 1 (now)</p>
 - Kubernetes mental model
 - Lab: first deployment + service + scaling
-
-Session 2 (later today):
+</div>
+<div>
+<p class="block-title">Session 2 (later today)</p>
 - What runs Kubernetes (virtualization layer)
 - Operating mindset: updates, failures, debugging
+</div>
+</div>
 </section>
 
 <section>
 ## <Icon name="i-tabler-stack-2" />Docker Compose is great
 
-Compose is perfect when:
+<p class="block-title">Compose is perfect when:</p>
 
 - You own the machine
 - You deploy once, then leave it alone
@@ -66,7 +71,7 @@ Compose is perfect when:
 <section>
 ## <Icon name="i-tabler-alert-triangle" />Compose limits
 
-Compose does not give you:
+<p class="block-title">Compose does not give you:</p>
 
 - Scheduling across machines
 - Self-healing across failures
@@ -74,27 +79,32 @@ Compose does not give you:
 - A control plane that watches and reconciles state
 </section>
 
-<section>
+<section class="">
 ## <Icon name="i-tabler-cow" />Pets vs Cattle
 
-Pets:
+<div class="two-col">
+<div>
+<p class="block-title">Pets</p>
 - Unique
 - Named
 - Manually cared for
-
-Cattle:
+</div>
+<div>
+<p class="block-title">Cattle</p>
 - Replaceable
 - Disposable
 - Recreated automatically
+</div>
+</div>
 
 Kubernetes treats Pods like cattle.
 State should live outside the container.
 </section>
 
-<section>
+<section class="title-center-body-left">
 ## <Icon name="i-tabler-bulb" class="translate-y-[-0.1em]" />So what is Kubernetes?
 
-Kubernetes is a system that:
+<p class="block-title">Kubernetes is a system that:</p>
 
 - Keeps your apps running
 - Tries to match **desired state** to **actual state**
@@ -107,22 +117,26 @@ Kubernetes does the repetitive work.
 <section>
 ## <Icon name="i-tabler-refresh" />The control loop idea
 
-Desired state:
+<div class="two-col">
+<div>
+<p class="block-title">Desired state:</p>
 - “I want 3 copies of this app running”
-
-Actual state:
+</div>
+<div>
+<p class="block-title">Actual state:</p>
 - “Only 2 are running right now”
-
-Controller loop:
+</div>
+</div>
+<p class="block-title">Controller loop:</p>
 - “Start 1 more”
 
-This loop never stops.
+<p class="block-title">This loop never stops.</p>
 </section>
 
 <section>
 ## <Icon name="i-tabler-cube" />Core objects we will use
 
-Keep it simple:
+<p class="block-title">Keep it simple:</p>
 
 - **Pod**: the smallest unit that runs
 - **Deployment**: manages replicas and updates
@@ -134,20 +148,20 @@ We will ignore the rest for now.
 <section>
 ## <Icon name="i-tabler-package" />Pod: the unit of execution
 
-A Pod is:
+<p class="block-title">A Pod is:</p>
 
 - One or more containers that run together
 - Shared networking inside the Pod
 - Usually short-lived, replaceable
 
-Key idea:
+<p class="block-title">Key idea:</p>
 - You do not manage Pods manually in production
 </section>
 
 <section>
 ## <Icon name="i-tabler-repeat" />Deployment: desired state for Pods
 
-A Deployment lets you say:
+<p class="block-title">A Deployment lets you say:</p>
 
 - Which image to run
 - How many replicas you want
@@ -200,19 +214,23 @@ You can version it in git, review it, and automate it in CI.
 <section>
 ## <Icon name="i-tabler-arrows-exchange" />Imperative vs Declarative
 
-Imperative:
+<div class="two-col">
+<div>
+<p class="block-title">Imperative:</p>
 - “Run this container now.”
 - One-time command
-
-Declarative:
+</div>
+<div>
+<p class="block-title">Declarative:</p>
 - “This should exist.”
 - System keeps it true over time
-
-Example:
+</div>
+</div>
+<p class="block-title">Example:</p>
 - `kubectl run` → imperative
 - `kubectl apply -f deployment.yaml` → declarative
 
-Kubernetes is primarily declarative.
+_Kubernetes is primarily declarative._
 </section>
 
 <section>
@@ -233,7 +251,7 @@ If you learn nothing else, learn these.
 <section>
 ## <Icon name="i-tabler-eye" />How to observe what is happening
 
-When something is wrong, check in this order:
+<p class="block-title">When something is wrong, check in this order:</p>
 
 - Status: `kubectl get`
 - Details and events: `kubectl describe`
@@ -245,7 +263,7 @@ This is your debugging loop.
 <section>
 ## <Icon name="i-tabler-tools" />Lab setup
 
-We will use a local Kubernetes cluster.
+<p class="block-title">We will use a local Kubernetes cluster.</p>
 
 - If the lab machines support Docker: we use **kind**
 - If not: we use a pre-configured VM option
@@ -257,7 +275,7 @@ Your job is to learn the model.
 <section>
 ## <Icon name="i-tabler-rocket" />Lab tasks
 
-In the lab, you will:
+<p class="block-title">In the lab, you will:</p>
 
 - Apply the Deployment YAML
 - Apply the Service YAML
@@ -266,15 +284,15 @@ In the lab, you will:
 - Delete a Pod and watch it recover
 </section>
 
-<section>
-## <Icon name="i-tabler-bug" />Intentional failure
+<section class="title-center-body-left">
+## <Icon name="i-tabler-bug" class="translate-y-[-0.1em]" />Intentional failure
 
-You will intentionally create a failure:
+<p class="block-title">You will intentionally create a failure:</p>
 
 - Use a bad image tag
 - Or break the container port
 
-Then you will:
+<p class="block-title">Then you will:</p>
 
 - Observe the failure
 - Explain it
@@ -284,7 +302,7 @@ Then you will:
 <section>
 ## <Icon name="i-tabler-clipboard-check" />What I will check today
 
-During the session, I may ask you to show:
+<p class="block-title">During the session, I may ask you to show:</p>
 
 - A working deployment (running Pods)
 - A Service that routes to your Pods
@@ -299,27 +317,31 @@ Understanding is more important than speed.
 
 Kubernetes is not the bottom of the stack.
 
-Typical production stack:
+<p class="block-title">Typical production stack:</p>
 
 App → Container → Pod → Node → VM → Hypervisor → Hardware
 
-In most real environments:
+<div class="two-col">
+<div>
+<p class="block-title">In most real environments:</p>
 - Nodes are virtual machines
 - VMs run on a hypervisor
 - The hypervisor isolates workloads
-
-Virtualization still matters:
+</div>
+<div>
+<p class="block-title">Virtualization still matters:</p>
 - Cloud and data centers
 - Embedded systems
 - Automotive and mixed-criticality platforms
-
+</div>
+</div>
 We will explore this layer in Session 2.
 </section>
 
 <section>
 ## <Icon name="i-tabler-question-mark" />Quick check-in
 
-Before the lab:
+<p class="block-title">Before the lab:</p>
 
 - Have you used Kubernetes before?
 - If yes: what did you use it for?
@@ -329,14 +351,14 @@ We will keep it practical.
 </section>
 
 <section>
-## <Icon name="i-tabler-player-play" />Let’s start the lab
+## <Icon name="i-tabler-player-play" class="translate-y-[-0.1em]" />Let’s start the lab
 
 - Open the course website
 - Go to **Lab 70**
 - Work in your own GitHub fork
 - Ask questions early
 
-When you finish:
+<p class="block-title">When you finish:</p>
 - help a neighbor
 - or pick a stretch goal from the lab
 </section>

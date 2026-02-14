@@ -36,9 +36,34 @@ const {title = 'Slides'} = Astro.props;
     --uno: 'inline-block';
   }
 
-  /* .reveal:global(img) {
-    --uno: 'inline-block';
-  } */
+  /* Layout helpers for readability */
+  /* Use on a slide: <section class="title-center-body-left"> ... */
+  .reveal .slides :global(section.title-center-body-left) {
+    --uno: 'text-left';
+  }
+
+  .reveal .slides :global(section.title-center-body-left h1),
+  .reveal .slides :global(section.title-center-body-left h2),
+  .reveal .slides :global(section.title-center-body-left h3) {
+    --uno: 'text-center';
+  }
+
+  /* Two-column helper (use: <div class="two-col">...</div>) */
+  .reveal .slides :global(.two-col) {
+    --uno: 'grid grid-cols-2 gap-8 items-start w-full';
+  }
+
+  .reveal .slides :global(.block-title) {
+    --uno: 'text-[1.1em] font-semibold mb-2 mt-6';
+  }
+
+  .reveal .slides :global(section.title-center-body-left .r-vstack) {
+    --uno: 'items-start';
+  }
+
+  .reveal .slides :global(section.title-center-body-left .r-vstack > *) {
+    --uno: 'w-full';
+  }
 </style>
 
 <BaseLayout title={title}>
