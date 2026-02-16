@@ -74,5 +74,69 @@ const {title} = Astro.props;
   </head>
   <body>
     <slot />
+    <script>
+      import mermaid from 'mermaid';
+
+      const createDiagramId = () =>
+        `mermaid-${Math.random().toString(36).slice(2)}`;
+
+      const renderMermaid = async () => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          '.mermaid:not([data-mermaid-rendered])'
+        );
+
+        if (nodes.length === 0) {
+          return;
+        }
+
+        const isDarkMode = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        ).matches;
+
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          /* theme: 'forest', */
+          theme: isDarkMode ? 'dark' : 'forest',
+          /* : 'default', */
+          fontFamily: 'inherit',
+          themeVariables: {
+            darkMode: isDarkMode,
+          },
+          look: 'handDrawn',
+        });
+
+        for (const el of nodes) {
+          const graphDefinition = el.textContent?.trim() ?? '';
+          if (!graphDefinition) {
+            el.dataset.mermaidRendered = 'true';
+            continue;
+          }
+
+          try {
+            const {svg} = await mermaid.render(
+              createDiagramId(),
+              graphDefinition
+            );
+            el.innerHTML = svg;
+            el.dataset.mermaidRendered = 'true';
+          } catch (error) {
+            const errorMessage =
+              typeof error === 'object' && error !== null && 'message' in error
+                ? String(error.message)
+                : String(error);
+            console.error('Mermaid render failed', {
+              error,
+              graphDefinition,
+              el,
+            });
+            el.textContent = errorMessage;
+            el.dataset.mermaidRendered = 'error';
+          }
+        }
+      };
+
+      await renderMermaid();
+    </script>
   </body>
 </html>

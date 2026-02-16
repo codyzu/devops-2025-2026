@@ -1,0 +1,12 @@
+---
+interface Props {
+  chart: string;
+  class?: string;
+}
+
+const {chart, class: className = ''} = Astro.props;
+---
+
+<div class:list={['mermaid flex flex-col items-center', className]}>
+  {chart}
+</div>

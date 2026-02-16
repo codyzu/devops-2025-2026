@@ -7,6 +7,7 @@ description: "From Docker Compose to Kubernetes: orchestration, desired state, a
 import {Image} from 'astro:assets';
 import hero from '../assets/hero.png';
 import Icon from '../components/Icon.astro';
+import Mermaid from '../components/Mermaid.astro';
 
 
 <section>
@@ -173,13 +174,19 @@ It creates and replaces Pods for you.
 <section>
 ## <Icon name="i-tabler-hierarchy" />Controller hierarchy
 
-Deployment
-→ ReplicaSet
-→ Pod
+<div class="two-col">
+<Mermaid class="mt-5" chart={String.raw`
+flowchart TD
+  A(Deployment) --> B(ReplicaSet)
+  B --> C(Pod)
+`} />
 
-You interact with the Deployment.
-The Deployment manages ReplicaSets.
-The ReplicaSet ensures the right number of Pods exist.
+<div>
+- You interact with the Deployment.
+- The Deployment manages ReplicaSets.
+- The ReplicaSet ensures the right number of Pods exist.
+</div>
+</div>
 
 If a Pod disappears, the ReplicaSet creates a new one.
 </section>
@@ -313,29 +320,54 @@ Understanding is more important than speed.
 </section>
 
 <section>
-## <Icon name="i-tabler-layers-difference" />What runs Kubernetes?
-
-Kubernetes is not the bottom of the stack.
-
-<p class="block-title">Typical production stack:</p>
-
-App → Container → Pod → Node → VM → Hypervisor → Hardware
-
-<div class="two-col">
-<div>
-<p class="block-title">In most real environments:</p>
-- Nodes are virtual machines
-- VMs run on a hypervisor
-- The hypervisor isolates workloads
+<div class="text-[1.6em] font-semibold"><Icon name="i-tabler-layers-difference" />What runs Kubernetes?</div>
+<div class="flex flex-row gap-8 w-full">
+<div class="flex flex-col">
+  <div class="text-[0.5em] font-semibold whitespace-nowrap">Production Stack</div>
+  <Mermaid class="" chart={String.raw`
+  %%{init: {
+    "flowchart": {
+      "useMaxWidth": true,
+      "nodeSpacing": 14,
+      "rankSpacing": 36,
+      "padding": 2
+    },
+    "themeVariables": {
+      "fontSize": "16px"
+    }
+  }}%%
+  flowchart TD
+    subgraph "Application layer"
+      A(App)
+    end
+    subgraph "Container Runtime"
+      B(Container)
+    end
+    subgraph "Kubernetes Layer"
+      C(Pod)
+      D(Node)
+    end
+    subgraph "Infrastructure Layer"
+      E(VM)
+      F(Hypervisor)
+      G(Hardware)
+    end
+    A --> B --> C --> D --> E --> F --> G
+  `} />
 </div>
-<div>
-<p class="block-title">Virtualization still matters:</p>
-- Cloud and data centers
-- Embedded systems
-- Automotive and mixed-criticality platforms
+<div class="flex-grow text-[0.9em] flex flex-col justify-center">
+- **Kubernetes is not the bottom of the stack.**
+- **In most real environments:**
+  - Nodes are virtual machines
+  - VMs run on a hypervisor
+  - The hypervisor isolates workloads
+- **Virtualization still matters:**
+  - Cloud and data centers
+  - Embedded systems
+  - Automotive and mixed-criticality platforms
+- We will explore this layer in Session 2.
 </div>
 </div>
-We will explore this layer in Session 2.
 </section>
 
 <section>
