@@ -1,14 +1,20 @@
 import {createHash} from 'node:crypto';
 import {mkdir, readFile} from 'node:fs/promises';
-import {dirname, join, resolve} from 'node:path';
+import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execa} from 'execa';
+import {packageDirectorySync} from 'package-directory';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const projectRoot = resolve(here, '../..');
+const projectRoot = packageDirectorySync({cwd: here});
+
+if (!projectRoot) {
+  throw new Error(`Could not find project root (package.json) from ${here}`);
+}
+
 const cacheDir = join(projectRoot, '.astro', 'mermaid-cache');
 const mmdcPath = join(projectRoot, 'node_modules', '.bin', 'mmdc');
-const mermaidConfigPath = join(here, 'mermaid.json');
+const mermaidConfigPath = join(projectRoot, 'src', 'lib', 'mermaid.json');
 
 export type MermaidTheme = 'forest' | 'dark';
 
