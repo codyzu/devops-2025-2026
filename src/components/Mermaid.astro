@@ -1,12 +1,18 @@
 ---
+import {renderMermaidSvg} from '../lib/render-mermaid';
+
 interface Props {
   chart: string;
   class?: string;
 }
 
 const {chart, class: className = ''} = Astro.props;
+
+const lightSvg = await renderMermaidSvg(chart, 'forest');
+const darkSvg = await renderMermaidSvg(chart, 'dark');
 ---
 
-<div class:list={['mermaid flex flex-col items-center', className]}>
-  {chart}
+<div class:list={['flex flex-col items-center justify-center', className]}>
+  <div class="mermaid dark:hidden" set:html={lightSvg} />
+  <div class="mermaid hidden dark:block" set:html={darkSvg} />
 </div>
