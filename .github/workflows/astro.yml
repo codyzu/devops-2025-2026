@@ -76,6 +76,9 @@ jobs:
       - name: Install deps (staging)
         run: pnpm install
         working-directory: repo-staging
+      - name: Debug puppeteer (staging)
+        run: ls -la node_modules/.bin && pnpm exec puppeteer browsers install chrome-headless-shell
+        working-directory: repo-staging
       - name: Lint (staging)
         run: pnpm run lint
         working-directory: repo-staging
