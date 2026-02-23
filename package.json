@@ -9,7 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint": "astro sync && xo",
-    "postinstall": "puppeteer browsers install chrome-headless-shell"
+    "postinstall": "pnpm exec puppeteer browsers install chrome-headless-shell"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^6.3.10",
