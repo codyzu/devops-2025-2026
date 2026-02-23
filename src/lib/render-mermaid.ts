@@ -3,6 +3,7 @@ import {mkdir, readFile} from 'node:fs/promises';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execa} from 'execa';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 const cacheDir = join(projectRoot, '.astro', 'mermaid-cache');
@@ -90,5 +91,6 @@ export async function renderMermaidSvg(
       `Failed to render Mermaid diagram with mmdc: ${message}${stderr ? `\n${stderr}` : ''}`
     );
   }
+
   return readFile(outputPath, 'utf8');
 }
