@@ -45,6 +45,7 @@
     "package-directory": "^8.2.0",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
+    "puppeteer": "^24.37.5",
     "sharp": "^0.34.5",
     "unocss": "^66.5.10",
     "xo": "^1.2.3"
