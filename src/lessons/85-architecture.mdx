@@ -357,6 +357,166 @@ Commit and push your changes.
 
 ---
 
+## 🆕 New for Session 3: Controlled rollouts and safe rollback \{.no-step\}
+
+<div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 my-4">
+
+This section is new. It is designed to keep strong students busy and to prepare everyone for the final session.
+
+**What you will practice:**
+- Make a controlled change
+- Observe the rollout
+- Intentionally break it once
+- Roll back safely
+- Document what you learned
+
+</div>
+
+## Perform a controlled rollout
+
+Pick one small, safe change. For example:
+- Change the page title in the template
+- Add a new route that returns a short message
+- Add a tiny log line
+
+Commit the change locally first.
+
+## Build and publish a versioned image \{.no-step\}
+
+You need two image versions to demonstrate a rollout.
+
+If you already have a workflow from the previous course, you can reuse it.
+
+Otherwise, keep it simple and build locally.
+
+- Build a versioned image tag:
+```bash
+docker build -t quote-app:v1 -f docker/Dockerfile .
+```
+
+- Make your code change, then build a second version:
+```bash
+docker build -t quote-app:v2 -f docker/Dockerfile .
+```
+
+If you are using k3s with `containerd`, you may need to import the image.
+
+Example (local, no registry):
+```bash
+docker save quote-app:v2 | sudo k3s ctr images import -
+```
+
+## Update the Deployment to the new image
+
+Update the Deployment image to `quote-app:v2`.
+
+If you used a registry image name in your manifests, keep using that same pattern.
+
+Apply your manifest update, then observe the rollout.
+
+## Observe rollout progress
+
+Run:
+
+```bash
+kubectl rollout status deployment quote-app
+kubectl rollout history deployment quote-app
+kubectl get pods -o wide
+```
+
+Answer in `architecture-notes.md`:
+
+- What changed in the cluster during the rollout?
+- What stayed the same?
+- How did Kubernetes decide when to create and delete Pods?
+
+## Require one broken rollout
+
+Introduce a controlled failure so the rollout does not complete.
+
+Examples:
+- Set the image to a tag that does not exist
+- Set the container port to the wrong value
+- Break your readiness probe path
+
+Apply the change and confirm you can see evidence of failure:
+
+```bash
+kubectl get pods
+kubectl describe pod <pod-name>
+kubectl get events
+```
+
+In `architecture-notes.md`, write:
+- What failed first?
+- Which signal showed you the failure fastest?
+- What would you check next if this happened in production?
+
+## Roll back safely
+
+Undo the broken rollout:
+
+```bash
+kubectl rollout undo deployment quote-app
+```
+
+Verify:
+- The application becomes healthy again
+- The Deployment stabilizes
+- Pods return to a ready state
+
+Add a short note in `architecture-notes.md`:
+- What did rollback change?
+- What did rollback not change?
+
+## Required extension choice
+
+Choose ONE of these extensions and implement it.
+
+### Option A: Explicit rollout strategy
+
+Update your Deployment to explicitly define a rolling update strategy:
+
+```yaml
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+```
+
+Explain in `architecture-notes.md`:
+- What does `maxSurge` do?
+- What does `maxUnavailable` do?
+- Why might you choose `0` for `maxUnavailable`?
+
+### Option B: Rollout notes and evidence
+
+Add a short “Rollout Evidence” section to `architecture-notes.md` that includes:
+- The commands you ran (`rollout status`, `history`, `undo`)
+- One or two short excerpts of output (keep it short)
+- Your interpretation of what happened
+
+### Option C: Canary-style rollout (manual)
+
+Simulate a “canary” rollout manually:
+- Temporarily run 1 replica of `v2` and 2 replicas of `v1`
+- Compare behavior
+- Then complete the rollout
+
+Document the approach and limitations in `architecture-notes.md`.
+
+## Optional stretch: real end-to-end checks \{.no-step\}
+
+In real projects, teams often add end-to-end checks (for example with Playwright) to validate an application through the browser.
+
+You do not need to implement this here, but write 3–5 bullets in `architecture-notes.md` explaining:
+- What an end-to-end test would validate for this app
+- Where it should run (locally, CI, or both)
+- What the biggest cost or risk would be
+
+---
+
 ## Optional extension lanes \{.no-step\}
 
 The following lanes are optional unless specified by your instructor.
