@@ -15,7 +15,12 @@ if (!projectRoot) {
 const cacheDir = join(projectRoot, '.astro', 'mermaid-cache');
 const mmdcPath = join(projectRoot, 'node_modules', '.bin', 'mmdc');
 const mermaidConfigPath = join(projectRoot, 'src', 'lib', 'mermaid.json');
-const puppeteerConfigPath = join(here, 'puppeteer-config.json');
+const puppeteerConfigPath = join(
+  projectRoot,
+  'src',
+  'lib',
+  'puppeteer-config.json'
+);
 
 export type MermaidTheme = 'forest' | 'dark';
 
