@@ -15,6 +15,7 @@ if (!projectRoot) {
 const cacheDir = join(projectRoot, '.astro', 'mermaid-cache');
 const mmdcPath = join(projectRoot, 'node_modules', '.bin', 'mmdc');
 const mermaidConfigPath = join(projectRoot, 'src', 'lib', 'mermaid.json');
+const puppeteerConfigPath = join(here, 'puppeteer-config.json');
 
 export type MermaidTheme = 'forest' | 'dark';
 
@@ -43,6 +44,11 @@ export async function renderMermaidSvg(
     configText = await readFile(mermaidConfigPath, 'utf8');
   } catch {}
 
+  let puppeteerConfigText = '';
+  try {
+    puppeteerConfigText = await readFile(puppeteerConfigPath, 'utf8');
+  } catch {}
+
   // Only include output-affecting flags here; input/output paths are derived.
   // Keep a stable, hashable representation and derive CLI args from it.
   const renderOptions = [
@@ -50,6 +56,8 @@ export async function renderMermaidSvg(
     'transparent',
     '-c',
     mermaidConfigPath,
+    '-p',
+    puppeteerConfigPath,
     '-t',
     theme,
   ] as const;
@@ -60,6 +68,8 @@ export async function renderMermaidSvg(
     .update(JSON.stringify(renderOptions))
     .update('\n---mermaid-config---\n')
     .update(configText)
+    .update('\n---puppeteer-config---\n')
+    .update(puppeteerConfigText)
     .digest('hex');
   const svgId = `mermaid-svg-${hash.slice(0, 16)}`;
   const outputPath = join(cacheDir, `${hash}.svg`);
