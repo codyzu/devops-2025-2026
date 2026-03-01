@@ -15,3 +15,28 @@ const {title, description} = Astro.props;
 
   <slot />
 </ArticleLayout>
+
+<script>
+  // Make task lists interactive and persist their state in localStorage
+  document.addEventListener('DOMContentLoaded', () => {
+    const boxes = document.querySelectorAll<HTMLInputElement>(
+      'li.task-list-item input[type="checkbox"]'
+    );
+
+    boxes.forEach((cb) => {
+      const labelText = cb.parentElement?.textContent?.trim() ?? '';
+      const key = `lesson-checkbox-${window.location.pathname}-${labelText}`;
+
+      const saved = localStorage.getItem(key);
+      if (saved === 'true') {
+        cb.checked = true;
+      }
+
+      cb.disabled = false;
+
+      cb.addEventListener('change', () => {
+        localStorage.setItem(key, cb.checked.toString());
+      });
+    });
+  });
+</script>
