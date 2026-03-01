@@ -1,0 +1,198 @@
+---
+title: "90 Operating Kubernetes in Production"
+type: slides
+slug: 90-kubernetes-in-prod
+description: "From running containers to operating systems in production: controllers, failure, rollout, and layered debugging."
+availableFrom: 2026-02-19T13:00:00+01:00
+---
+import {Image} from 'astro:assets';
+import hero from '../assets/hero.png';
+import Icon from '../components/Icon.astro';
+import Mermaid from '../components/Mermaid.astro';
+
+<section>
+  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
+  ## <Icon name="i-tabler-server" />Operating Kubernetes in Production
+  ### From “it runs” to “it survives”
+</section>
+
+<section>
+## <Icon name="i-tabler-road" />Today
+
+- 10–15 min recap
+- Finish Lab 85
+- Clarify grading expectations
+- Introduce rollout & controlled change
+- Think like production engineers
+</section>
+
+<section>
+## <Icon name="i-tabler-refresh" />Quick Recap: Controllers
+
+<Mermaid class="mt-5" chart={String.raw`
+flowchart TD
+  A(Deployment) --> B(ReplicaSet)
+  B --> C(Pod)
+`} />
+
+<p class="block-title">Key idea:</p>
+
+_Kubernetes continuously reconciles desired state with actual state._
+</section>
+
+<section>
+## <Icon name="i-tabler-question-mark" />Interactive Question
+
+<p class="block-title">If I delete a Pod manually:</p>
+
+- What happens?
+- Who recreates it?
+- Why?
+</section>
+
+<section>
+## <Icon name="i-tabler-activity" />Readiness vs Liveness
+
+<div class="two-col">
+  <div class="text-left">
+    <p class="block-title">Readiness:</p>
+    - Should this Pod receive traffic?
+  </div>
+  <div class="text-left">
+    <p class="block-title">Liveness:</p>
+    - Should this container be restarted?
+  </div>
+</div>
+
+<p class="block-title">Production impact:</p>
+- One controls traffic
+- One controls restarts
+</section>
+
+<section>
+## <Icon name="i-tabler-stack-2" />Layered Architecture View
+
+<div class="flex flex-row justify-start gap-8">
+<Mermaid class="flex-grow-1" chart={String.raw`
+  %%{init: {
+    "flowchart": {
+      "useMaxWidth": true,
+      "nodeSpacing": 14,
+      "rankSpacing": 36,
+      "padding": 2
+    },
+    "themeVariables": {
+      "fontSize": "16px"
+    }
+  }}%%
+  flowchart TD
+    A(User) --> B(Service)
+    B --> C(Pod)
+    C --> D(Container)
+    D --> E(Node OS)
+    E --> F(VM)
+    F --> G(Hypervisor)
+    G --> H(Hardware)
+`} />
+<div class="flex-grow-1 flex flex-col justify-center">
+  <div class="block">
+    <p class="block-title">When debugging, always ask:</p>
+
+    _Which layer am I in?_
+  </div>
+</div>
+</div>
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-alert-triangle" />Failure in Production
+
+<p class="block-title">In real systems:</p>
+
+- Pods crash
+- Images fail to pull
+- Nodes run out of memory
+- Deployments misconfigure secrets
+
+Good engineers expect failure.
+They design for it.
+</section>
+
+<section>
+## <Icon name="i-tabler-arrows-exchange" />Controlled Change: Rolling Updates
+
+When you change an image:
+
+```bash
+kubectl set image deployment/quote-app app=quote-app:v2
+```
+
+Kubernetes does not destroy everything.
+
+It rolls forward gradually.
+</section>
+
+<section>
+## <Icon name="i-tabler-list-details" />Observe a Rollout
+
+```bash
+kubectl rollout status deployment quote-app
+kubectl rollout history deployment quote-app
+```
+
+You can:
+
+- Monitor progress
+- Inspect revision history
+</section>
+
+<section>
+## <Icon name="i-tabler-rotate-2" />Rollback
+
+If something breaks:
+
+```bash
+kubectl rollout undo deployment quote-app
+```
+
+<p class="block-title">Production mindset:</p>
+
+_Change must be reversible._
+</section>
+
+<section>
+## <Icon name="i-tabler-brain" />Think Like an Engineer
+
+<p class="block-title">Ask yourself:</p>
+
+- What is my blast radius?
+- What layer isolates failure?
+- What is my rollback plan?
+- What happens if the node dies?
+- Where is persistence guaranteed?
+
+_This is what differentiates operators from YAML writers._
+</section>
+
+<section>
+## <Icon name="i-tabler-checklist" />Lab 85 Reminder
+
+<p class="block-title">Make sure your repository contains:</p>
+
+- `architecture-notes.md`
+- Embedded architecture diagram
+- Secret-based configuration
+- Resource limits + probes
+- Controlled failure analysis
+
+_If it is not in GitHub, it cannot be graded._
+</section>
+
+<section>
+## <Icon name="i-tabler-player-play" />Next
+
+- Finish required Lab 85 tasks
+- Perform one controlled failure
+- Be ready to explain your architecture
+- Then we move into final production challenge next session
+</section>
