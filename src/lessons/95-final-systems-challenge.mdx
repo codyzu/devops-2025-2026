@@ -98,23 +98,30 @@ If you are unsure where to start, you may create the file with the following str
 # Weakest Point
 ```
 
-Identify several problems with the current design (at least three).  
-Focus on issues that would matter in a real production system.
 
-For each problem explain:
+Identify several problems with the current design (at least three).
 
-- What the problem is
-- Why it matters
-- What failure or operational risk it could cause
+> **Hint**  
+> If you are unsure where to start, consider areas such as:
+>
+> - scalability
+> - data persistence
+> - failure recovery
+> - deployment safety
+> - resource management
+> - secrets handling
 
-Examples of areas to consider:
+### What is the problem?
 
-- scaling
-- persistence
-- security
-- rollout safety
-- resource management
-- observability
+Describe the architectural issue you see.
+
+### Why does it matter?
+
+Explain why this problem is important in a real production system.
+
+### What failure or operational risk could it cause?
+
+Describe what could break or become difficult to operate if this issue is not fixed.
 
 ---
 
@@ -158,20 +165,28 @@ Embed or link the diagram in `final-architecture.md`.
 
 ## Explain your operational strategy
 
+
 Add a section titled:
 
 ```
 Operational Strategy
 ```
 
-Explain briefly:
+### How does the system scale?
 
-- How the system scales
-- How updates are deployed safely
-- How failures are detected
-- What Kubernetes controllers are responsible for recovery
+Explain how your design handles increased traffic and load.
 
-Keep the explanation short. A few clear paragraphs or bullet points are enough.
+### How are updates deployed safely?
+
+Describe the rollout strategy you would use.
+
+### How are failures detected?
+
+Explain what mechanisms detect unhealthy pods or services.
+
+### Which Kubernetes controllers handle recovery?
+
+Identify which controllers recreate or stabilize components when failures occur.
 
 ---
 
@@ -183,9 +198,7 @@ Add a section titled:
 Weakest Point
 ```
 
-Answer the following question:
-
-**What is the weakest part of your architecture and why?**
+### What is the weakest part of your architecture and why?
 
 Even well-designed systems have weaknesses.  
 Identify where your design would fail first under stress.
@@ -222,12 +235,15 @@ Be prepared to answer follow-up questions about your design decisions.
 
 ## Optional stretch thinking \{.no-step\}
 
-If you finish early, consider the following questions and add a short section to your notes.
+If you finish early, you may add short answers to the following questions in your notes.
 
-- What would break first under **10× traffic**?
-- What monitoring signals would you watch first?
-- How would you deploy this system across **multiple nodes or regions**?
-- What part of this system might require **virtual machines instead of containers**?
+### What would break first under **10× traffic**?
+
+### What monitoring signals would you watch first?
+
+### How would you deploy this system across **multiple nodes or regions**?
+
+### What part of this system might require **virtual machines instead of containers**?
 
 These questions are not required, but they reflect real production design thinking.
 
