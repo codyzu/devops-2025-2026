@@ -1,0 +1,254 @@
+---
+title: "95 Final Systems Challenge"
+slug: "95-final-systems-challenge"
+description: "Analyze a flawed deployment and design a production-ready architecture."
+type: lab
+availableFrom: 2026-02-12T13:00:00+01:00
+---
+import Mermaid from '../components/Mermaid.astro';
+
+## Introduction \{.no-step\}
+
+In this final lab you will step back from writing YAML and think like a systems engineer.
+
+Instead of implementing features, you will analyze a flawed system and redesign it so it could realistically run in production.
+
+Your goal is to show that you understand how the pieces we studied fit together:
+- containers
+- Kubernetes
+- deployments
+- services
+- persistence
+- failure handling
+
+This is intentionally open‑ended. There is no single correct answer.
+
+What matters is your reasoning and your ability to explain your design clearly.
+
+---
+
+## Submission checklist \{.no-step\}
+<div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 my-4">
+
+🚨 **Read this section before continuing.**  
+This clarifies how the final lab will be evaluated.
+
+Your repository must contain:
+
+- [ ] A file named `final-architecture.md`
+- [ ] A section identifying the **problems in the original architecture**
+- [ ] A **production architecture design**
+- [ ] An **architecture diagram** (PNG, Draw.io export, or image file)
+- [ ] The diagram embedded in or clearly linked from `final-architecture.md`
+- [ ] A short **operational strategy explanation**
+- [ ] A **weakest point reflection**
+
+Everything must be committed and pushed to GitHub.
+
+If it is not in your repository, it cannot be graded.
+</div>
+
+---
+
+## Scenario
+
+A small startup deployed the Quote API using Kubernetes.
+
+The current system has the following characteristics:
+
+<Mermaid class="" chart={String.raw`
+flowchart TD
+  U[Users] --> I[Ingress or NodePort]
+  I --> P[Single Pod: quote-api + postgres in same container]
+  P --> E[Plaintext env vars for secrets]
+  P --> N[Single node dependency]
+  P --> R[No probes, no limits]
+`} />
+
+- A single Pod runs the application
+- The PostgreSQL database runs inside the same container
+- There are no readiness or liveness probes
+- There are no resource limits
+- Deployments replace pods immediately
+- Secrets are stored in plain text environment variables
+
+The team believes the system is production ready.
+
+Your task is to evaluate this architecture and redesign it so it could realistically run in production.
+
+---
+
+## Identify the architectural problems
+
+Create a section in `final-architecture.md` titled:
+
+```
+Current System Problems
+```
+
+If you are unsure where to start, you may create the file with the following structure:
+
+```md
+# Current System Problems
+
+# Production Architecture
+
+# Operational Strategy
+
+# Weakest Point
+```
+
+Identify several problems with the current design (at least three).  
+Focus on issues that would matter in a real production system.
+
+For each problem explain:
+
+- What the problem is
+- Why it matters
+- What failure or operational risk it could cause
+
+Examples of areas to consider:
+
+- scaling
+- persistence
+- security
+- rollout safety
+- resource management
+- observability
+
+---
+
+## Design an improved architecture
+
+Create a new section in `final-architecture.md`:
+
+```
+Production Architecture
+```
+
+Design a production-ready version of the system.
+
+Your design should include:
+
+- An application Deployment
+- A Service exposing the application
+- A PostgreSQL database with persistent storage
+- Multiple application replicas
+- A safe rollout strategy
+
+Create an **architecture diagram** that shows:
+
+- users
+- Kubernetes services
+- application pods
+- database
+- storage
+- nodes or infrastructure layer
+
+Consider using:
+
+- draw.io
+- Excalidraw
+- diagrams.net
+- hand-drawn diagram exported as PNG
+
+Embed or link the diagram in `final-architecture.md`.
+
+---
+
+## Explain your operational strategy
+
+Add a section titled:
+
+```
+Operational Strategy
+```
+
+Explain briefly:
+
+- How the system scales
+- How updates are deployed safely
+- How failures are detected
+- What Kubernetes controllers are responsible for recovery
+
+Keep the explanation short. A few clear paragraphs or bullet points are enough.
+
+---
+
+## Reflection
+
+Add a section titled:
+
+```
+Weakest Point
+```
+
+Answer the following question:
+
+**What is the weakest part of your architecture and why?**
+
+Even well-designed systems have weaknesses.  
+Identify where your design would fail first under stress.
+
+---
+
+## Deliverables
+
+Before presenting, make sure your repository contains:
+
+- `final-architecture.md`
+- an architecture diagram
+- clear written reasoning
+- committed and pushed changes
+
+If it is not in your repository, it cannot be graded.
+
+---
+
+## Presentation
+
+Each student will briefly present their design.
+
+You should be able to explain:
+
+- your architecture diagram
+- the main problems in the original system
+- how your redesign improves reliability
+- how Kubernetes manages failures
+
+Be prepared to answer follow-up questions about your design decisions.
+
+---
+
+## Optional stretch thinking \{.no-step\}
+
+If you finish early, consider the following questions and add a short section to your notes.
+
+- What would break first under **10× traffic**?
+- What monitoring signals would you watch first?
+- How would you deploy this system across **multiple nodes or regions**?
+- What part of this system might require **virtual machines instead of containers**?
+
+These questions are not required, but they reflect real production design thinking.
+
+---
+
+## Wrap-up reflection \{.no-step\}
+
+Before finishing the session:
+
+- Ensure your notes are committed and pushed
+- Ensure your diagram is accessible
+- Ensure you can explain your design clearly
+
+This final exercise focuses on **reasoning, architecture, and systems thinking** rather than implementation speed.
+
+---
+
+## Course feedback \{.no-step\}
+
+If you have a few minutes, please share feedback about this course.
+
+Your responses are anonymous and help improve future sessions.
+
+https://docs.google.com/forms/d/e/1FAIpQLSdKoFpI0_JAO4eVEYr9syE19Ddm9U60rC2vFAfqm3ZJcWtqNQ/viewform?usp=publish-editor
