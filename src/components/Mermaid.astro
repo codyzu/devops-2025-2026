@@ -13,6 +13,12 @@ const darkSvg = await renderMermaidSvg(chart, 'dark');
 ---
 
 <div class:list={['flex flex-col items-center justify-center', className]}>
-  <div class="mermaid flex dark:hidden w-full flex-col items-center justify-center" set:html={lightSvg} />
-  <div class="mermaid hidden dark:flex w-full flex-col items-center justify-center" set:html={darkSvg} />
+  <div
+    class="mermaid flex dark:hidden w-full flex-col items-center justify-center"
+    set:html={lightSvg}
+  />
+  <div
+    class="mermaid hidden dark:flex w-full flex-col items-center justify-center"
+    set:html={darkSvg}
+  />
 </div>
