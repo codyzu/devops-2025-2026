@@ -170,6 +170,56 @@ Open the application again in your browser and refresh the page.
 
 Observe the difference in behavior compared to running the application alone.
 
+<details id="debug-mode">
+<summary><strong>Optional: enable live debugging without rebuilding</strong></summary>
+
+You can configure the `app` service in `docker/compose.yaml` for live development:
+
+```yaml
+services:
+  # ...
+  app:
+    # ...
+
+    # Override the image's default command and start with nodemon.
+    command: npm run dev
+
+    volumes:
+      # Mount the local source so saved changes appear in the container.
+      - ../app:/app
+
+      # Keep the image's installed dependencies inside the container.
+      # Otherwise, the bind mount above would hide /app/node_modules.
+      - /app/node_modules
+
+    # Run the development command from the mounted application directory.
+    working_dir: /app
+
+    # ...
+```
+
+This keeps dependencies inside the container while making your local source files available at `/app`.
+
+Keep Compose running, edit a JavaScript or Handlebars file, and save it. Follow the application logs in another terminal:
+
+```bash
+docker compose -f docker/compose.yaml logs -f app
+```
+
+`nodemon` should detect the change and restart the Node.js application automatically. You only need to rebuild the image when something used during the image build changes, such as `package.json` or the Dockerfile.
+
+### macOS with Colima \{.no-step\}
+
+Filesystem events do not always cross the bind mount reliably when Docker runs through Colima. Make sure the `dev` script in `app/package.json` includes the `-L` option:
+
+```json
+"dev": "nodemon -L --ext js,hbs server.js | pino-pretty"
+```
+
+The `-L` option makes `nodemon` use polling, so it can detect changes through the Colima-mounted filesystem.
+
+</details>
+
 ## Enable database queries in the application
 
 Open `app/server.js`.
@@ -182,6 +232,8 @@ Save the file and rebuild the application image.
 docker compose -f docker/compose.yaml build
 docker compose -f docker/compose.yaml up
 ```
+
+*(Or, if you enabled [live debugging mode](#debug-mode), skip the rebuild. Save the file, then run `docker compose -f docker/compose.yaml logs -f app` to watch `nodemon` restart the application.)*
 
 Refresh the page and confirm that data now comes from the database.
 
