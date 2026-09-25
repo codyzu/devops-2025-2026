@@ -319,30 +319,7 @@ Stop the environment cleanly.
 docker compose -f docker/compose.yaml down
 ```
 
-## Troubleshooting \{.no-step\}
-
-### Application does not start
-
-Confirm the image builds successfully and that port `3000` is not already in use.
-
-```bash
-docker images
-docker ps
-```
-
-### Database connection errors
-
-Confirm the database service is healthy before the application starts.
-
-```bash
-docker compose -f docker/compose.yaml ps
-```
-
-Review the database logs if needed.
-
-```bash
-docker compose -f docker/compose.yaml logs db
-```
+## Bonus \{.no-step\}
 
 <details>
 <summary><strong>Bonus challenge: add automated tests</strong></summary>
@@ -397,6 +374,31 @@ If you add a test script to `package.json`, you may also run:
 npm test
 ```
 </details>
+
+## Troubleshooting \{.no-step\}
+
+### Application does not start
+
+Confirm the image builds successfully and that port `3000` is not already in use.
+
+```bash
+docker images
+docker ps
+```
+
+### Database connection errors
+
+Confirm the database service is healthy before the application starts.
+
+```bash
+docker compose -f docker/compose.yaml ps
+```
+
+Review the database logs if needed.
+
+```bash
+docker compose -f docker/compose.yaml logs db
+```
 
 ## Wrap-up \{.no-step\}
 
