@@ -95,7 +95,7 @@ Exit the container when done.
 
 Review how the application reads configuration from environment variables.
 
-Open `app/server.js` and locate the database configuration.
+Open `app/app.js` and locate the database configuration.
 
 Verify that the application can start even if the database is not available.
 
@@ -222,7 +222,7 @@ The `-L` option makes `nodemon` use polling, so it can detect changes through th
 
 ## Enable database queries in the application
 
-Open `app/server.js`.
+Open `app/app.js`.
 
 Uncomment the SELECT query in the root route handler so that data is fetched from the database.
 
