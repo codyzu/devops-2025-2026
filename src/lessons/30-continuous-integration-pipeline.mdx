@@ -3,12 +3,12 @@ title: "30 Automating the Pipeline with Continuous Integration"
 slug: "30-ci-pipeline"
 description: "Build a real CI pipeline that validates your application build and runtime behavior."
 type: lab
-published: false
+published: true
 ---
 
 In this lab, you will extend the work from the previous sessions and build a **real Continuous Integration pipeline** for your application.
 
-Unlike the CI preview you may have done earlier, this lab focuses on **trust**: proving that your application builds, starts, and behaves correctly every time you push code.
+Unlike the CI preview you may have done earlier, this lab focuses on **trust**: checking that your application installs, builds, starts, and answers a health request every time you push code. You will also identify what these checks leave untested.
 
 ## Debrief and context \{.no-step\}
 
@@ -23,18 +23,40 @@ This lab connects all of that work into a single automated validation pipeline.
 
 ## Verify your starting point
 
-Ensure you are working from **your own GitHub fork** and that your repository contains:
+Continue with **your own GitHub fork** and the application you completed in Session 2. Keep the application in `labs/20-containerized-node-app`; do not move it to the repository root.
+
+Ensure your repository contains:
 
 - A working Node.js application
 - A valid Dockerfile
 - A working Docker Compose setup
 - All recent changes pushed to GitHub
 
-Pull the latest changes locally:
+Return to the repository root, even if your terminal is still inside the Session 2 lab:
 
 ```bash
-git pull
+cd "$(git rev-parse --show-toplevel)"
+git status
+git branch --show-current
+git remote -v
+ls labs/20-containerized-node-app
 ```
+
+Confirm that `origin` points to your fork. Commit your completed Session 2 work before continuing. Stay on the branch containing that work; do not switch to an older preview branch that lacks your application changes.
+
+If your branch tracks a remote branch, pull its latest changes:
+
+```bash
+git pull --ff-only
+```
+
+If Git reports that the branch has no upstream, publish the branch and establish tracking:
+
+```bash
+git push -u origin HEAD
+```
+
+If you completed lesson 16, find your existing `CI Preview` workflow. You will expand that workflow rather than keep a second preview running alongside it.
 
 ## Introduce the CI workflow
 
@@ -46,7 +68,9 @@ Create the workflow directory if it does not already exist:
 mkdir -p .github/workflows
 ```
 
-Create or edit the file named `ci.yaml` inside this directory.
+Create or edit `.github/workflows/ci.yml`, reusing the filename from lesson 16. If you previously named it `ci.yaml`, rename that file to `ci.yml` rather than creating a duplicate.
+
+The workflow must be in `.github/workflows` at the **repository root**, not inside the lab directory. GitHub Actions starts from its own checkout; your local terminal directory does not set the runner's directory.
 
 ## Define pipeline triggers
 
@@ -74,90 +98,179 @@ jobs:
     runs-on: ubuntu-latest
 ```
 
-All validation steps will live inside this job.
+All validation steps will live inside this job. Indent `steps:` under `build`, at the same level as `runs-on`. Each step belongs inside that list.
+
+Use the complete workflow below to check the nesting after assembling the pieces.
 
 ## Check out the repository
 
 Add a step to fetch your repository contents:
 
 ```yaml
-steps:
-  - name: Check out repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
 ```
 
 This is equivalent to cloning the repository locally.
 
 ## Run fast checks
 
-Before building containers, validate the application dependencies.
+Before building containers, install dependencies reproducibly and check JavaScript syntax.
 
-Add the following steps:
+Append these steps to the job's `steps` list:
 
 ```yaml
-  - name: Set up Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: "24"
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
 
-  - name: Install dependencies
-    working-directory: app
-    run: npm ci
+      - name: Install dependencies
+        working-directory: labs/20-containerized-node-app/app
+        run: npm ci
 
-  - name: Run tests if present
-    working-directory: app
-    run: npm test --if-present
+      - name: Check JavaScript syntax
+        working-directory: labs/20-containerized-node-app/app
+        run: |
+          node --check app.js
+          node --check server.js
 ```
 
-These steps fail fast if dependencies or tests are broken.
+`npm ci` installs the versions recorded in the committed `package-lock.json` and fails if its dependency declarations disagree with `package.json`.
+
+`node --check` catches syntax errors. It does **not** execute the application, resolve its imports, or verify its behavior.
+
+The scaffold's `test` script is a placeholder that prints "Error: no test specified" and exits with status 1. `npm test --if-present` would still run it because the script exists. Leave it out of the baseline pipeline; replace it with real tests if you choose the testing extension.
 
 ## Build the Docker image
 
 Add a step to build the application image:
 
 ```yaml
-  - name: Build Docker image
-    run: docker build -t quote-app -f docker/Dockerfile .
+      - name: Build Docker image
+        working-directory: labs/20-containerized-node-app
+        run: docker build -t quote-app -f docker/Dockerfile .
 ```
 
-This verifies that your Dockerfile produces a valid image.
+The working directory makes `.` the lab directory. This is the build context expected by the Dockerfile's `COPY app/` instructions. A successful build produces an image; it does not prove that the image starts.
 
 ## Run a container smoke test
 
-A successful build is not enough.  
-You must also prove that the container **starts and responds correctly**.
+A successful build is not enough. Start the built image and check that `/health` responds successfully with JSON containing `"ok": true`.
 
-Add the following steps:
+Append these steps:
 
 ```yaml
-  - name: Run container
-    run: |
-      docker run -d --name quote-app -p 3000:3000 quote-app
-      for i in $(seq 1 30); do
-        if curl -fsS http://localhost:3000/health >/dev/null; then
-          echo "Health check passed"
-          exit 0
-        fi
-        sleep 1
-      done
-      echo "Health check failed"
-      docker logs quote-app || true
-      exit 1
+      - name: Run container smoke test
+        run: |
+          docker run -d --name quote-app -p 3000:3000 quote-app
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error \
+              --connect-timeout 1 --max-time 2 \
+              http://localhost:3000/health -o /tmp/quote-app-health.json \
+              && node -e 'const assert = require("node:assert/strict"); const fs = require("node:fs"); assert.equal(JSON.parse(fs.readFileSync("/tmp/quote-app-health.json", "utf8")).ok, true);'; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check failed"
+          exit 1
 
-  - name: Stop container
-    if: always()
-    run: |
-      docker rm -f quote-app || true
+      - name: Show container diagnostics
+        if: failure()
+        run: |
+          docker ps -a
+          docker inspect quote-app || true
+          docker logs quote-app || true
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f quote-app || true
 ```
 
-This step validates runtime behavior, not just build success.
+Each HTTP request has a timeout. The loop allows up to 30 attempts with a one-second pause between attempts; this is not an exact 30-second deadline. Add a five-minute job timeout in the complete workflow to bound the whole job.
+
+Diagnostics run when a previous step fails, and cleanup runs even after failure.
+
+The application listens on `0.0.0.0:3000`, and the Dockerfile starts it with `npm start`. This baseline runs the image without PostgreSQL. The `/health` route does not query the database, so it can pass while the quote page or quote insertion fails.
+
+### Compare the complete workflow
+
+Your repository-root `.github/workflows/ci.yml` should contain:
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        working-directory: labs/20-containerized-node-app/app
+        run: npm ci
+
+      - name: Check JavaScript syntax
+        working-directory: labs/20-containerized-node-app/app
+        run: |
+          node --check app.js
+          node --check server.js
+
+      - name: Build Docker image
+        working-directory: labs/20-containerized-node-app
+        run: docker build -t quote-app -f docker/Dockerfile .
+
+      - name: Run container smoke test
+        run: |
+          docker run -d --name quote-app -p 3000:3000 quote-app
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error \
+              --connect-timeout 1 --max-time 2 \
+              http://localhost:3000/health -o /tmp/quote-app-health.json \
+              && node -e 'const assert = require("node:assert/strict"); const fs = require("node:fs"); assert.equal(JSON.parse(fs.readFileSync("/tmp/quote-app-health.json", "utf8")).ok, true);'; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Show container diagnostics
+        if: failure()
+        run: |
+          docker ps -a
+          docker inspect quote-app || true
+          docker logs quote-app || true
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f quote-app || true
+```
 
 ## Observe the pipeline run
 
 Commit and push your changes:
 
 ```bash
-git add .github/workflows/ci.yaml
+git add .github/workflows/ci.yml
 git commit -m "Add full CI pipeline"
 git push
 ```
@@ -169,16 +282,21 @@ Open the **Actions** tab in GitHub and observe:
 - Docker build output
 - Container startup and health check
 
+Before deliberately breaking anything, obtain a green baseline run. Diagnose unexpected failures first. The placeholder test script is not the intentional failure exercise.
+
+Open a pull request from your working branch to your fork's default branch to verify the `pull_request` trigger as well. If you are already working on the default branch, create and push a new branch with a small change for this check. Keep the pull request open for review; merging is not required.
+
 ## Break the pipeline intentionally
 
 This step is **required for grading**.
 
 You must intentionally introduce a failure, observe a failing CI run on GitHub, then fix the issue and push a successful run.  
-During the final review, you may be asked to show the failing run and explain what caused it.
+Keep the failed run URL. During the final review, show that run and identify the failing step and the log message that explains the cause.
 
 Examples:
 
 - Change the health check URL to a non-existent path
+- Introduce a JavaScript syntax error and observe the syntax check fail
 - Introduce a syntax error in the Dockerfile
 - Break the application startup
 
@@ -188,54 +306,79 @@ Commit and push, then observe:
 - Clear error logs
 - Automatic detection of broken changes
 
-Fix the issue and push again.
+Fix the issue and push again. Keep the recovery run URL and the fixing commit SHA.
+
+Record the failed step, the cause, and why your change fixes it in a short note in the repository. Do not remove or bypass the failing check to get green. Keep both runs available as grading evidence.
 
 ## Understand what CI gives you \{.no-step\}
 
-At this point, your CI pipeline provides:
+A green baseline run means that, for the checked commit on this runner:
 
-- Automated build validation
-- Automated runtime verification
-- Fast feedback on every change
-- A shared signal for project health
+- Dependencies installed from the lockfile
+- The two JavaScript files passed syntax checks
+- The Docker image built
+- The container answered `/health` with the expected JSON value
 
-CI acts as a **gate**, preventing broken code from moving forward.
+It does **not** prove that database connections, quote retrieval, insertion, persistence, security, performance, or production deployment work. Explain at least one failure that could still occur with green CI.
+
+CI provides a signal. It becomes a merge gate only when branch protection or repository rules require its checks to pass. This lab does not configure those rules.
 
 ## Extension lanes \{.no-step\}
 
-These extensions are optional in scope but **at least one extension item is required for grading**.
+Complete **at least one lane** with working changes and verification evidence. An explanation alone, a smaller retry count, or extra logging does not satisfy the extension requirement.
 
-Choose one lane and complete at least one concrete item from that lane.  
-You may go further if you wish.
-
-You may be asked to explain one extension you attempted during the final review.
+Start an extension as soon as your baseline and deliberate failure/recovery exercise work. Continue improving it while waiting for your oral review.
 
 <details>
-  <summary><strong>Lane A: Reliability and runtime guarantees</strong></summary>
+  <summary><strong>Lane A: Validate database-backed behavior</strong></summary>
 
-  - Make the health check stricter (for example: verify expected content, not just HTTP 200)
-  - Fail the pipeline if startup takes too long (shorter retry window)
-  - Print more debugging info when the health check fails (container logs, `docker ps`, port checks)
-  - Explain what “healthy” should mean for your app in production
+  - Extend CI to start PostgreSQL and the built application image, using the Session 2 database initialization script and `DATABASE_URL` configuration.
+  - Wait for database readiness and application startup with bounded checks.
+  - Verify that `/` renders a seeded quote, submit a distinct quote to `/quotes`, then verify that a subsequent request returns it. Assert on the quote text; an HTTP 200 alone is insufficient.
+  - Make initialization or a database query fail, show CI detecting it, then fix it and obtain green.
+  - Always clean up services and print application/database logs on failure.
+
+  Use the image's production startup command. The local Compose development override (`npm run dev` and source mounts) can hide the image's packaged source; use a dedicated CI Compose configuration or adapt it to run the built image without source mounts.
+
+  **Acceptance:** show the workflow changes, a green database-backed run, and a failed/recovered run proving that the new assertions detect a database or quote-operation problem.
 </details>
 
 <details>
-  <summary><strong>Lane B: Code quality and validation</strong></summary>
+  <summary><strong>Lane B: Add automated route tests</strong></summary>
 
-  - Add or extend tests in the `app` directory
-  - Ensure tests run in CI and fail the pipeline when they fail
-  - Add a lint step (only if you already have a lint script available)
-  - Explain what your tests do and do not guarantee
+  - Create tests inside `labs/20-containerized-node-app/app/tests` using Node's built-in test runner and Fastify's `inject` method.
+  - Import the named async export with `import { buildApp } from '../app.js'`, await `buildApp()`, and close each app in a `finally` block.
+  - Test `/health` with assertions on its HTTP status and JSON body. Add a second case, such as an unknown route returning 404 or a database-backed quote route.
+  - Replace the placeholder `test` script with `node --test` and run `npm test` locally from the app directory.
+  - Add an explicit `npm test` step to CI after dependency installation, using the same app working directory.
+  - Change application behavior so an assertion fails, show the failed CI test, then repair it.
+
+  **Acceptance:** show both test cases, the real test script, the CI test step, and failed/recovered runs. Explain what in-memory route tests leave untested about the Docker image and deployment.
 </details>
 
 <details>
-  <summary><strong>Lane C: CI structure and signals</strong></summary>
+  <summary><strong>Lane C: Separate fast checks from container validation</strong></summary>
 
-  - Split tests and Docker build into separate jobs
-  - Add a job that only runs on pull requests
-  - Use conditional steps to avoid repeating work
-  - Explain how your CI design would scale to a team project
+  - Create a fast-checks job for dependency installation and syntax checks (and tests if you add them).
+  - Create a second job for Docker build and runtime validation, with `needs` referencing the fast-checks job.
+  - Give each job its own checkout and required setup. Jobs do not share a workspace, installed dependencies, or locally built images automatically.
+  - Introduce a syntax error and show the fast-checks job failing while the container job is skipped.
+  - Repair the error and show both jobs passing, including a pull-request run.
+
+  **Acceptance:** show the dependency between jobs, failed/recovered runs, and a pull-request run. Explain why the container job must not report success when the prerequisite checks fail.
 </details>
+
+## Prepare your grading evidence \{.no-step\}
+
+Before the oral review, have these items ready:
+
+- Your fork, working branch, and workflow file
+- A green baseline run and a pull-request run
+- The deliberate failed run, its diagnostic log, the fixing commit, and the recovered green run
+- Your extension changes and verification evidence
+- Your short diagnosis note and an explanation of what green CI does and does not prove
+
+The review focuses on four broad areas: a working pipeline, failure diagnosis and recovery, a meaningful extension, and your understanding. Keep the relevant GitHub tabs open so you can show evidence promptly.
 
 ## Wrap-up \{.no-step\}
 
@@ -243,7 +386,8 @@ You have built a complete CI pipeline that:
 
 - Builds your application
 - Verifies dependencies
-- Confirms the container starts correctly
+- Confirms the container starts and answers the health request
+- Makes failures visible with diagnostic evidence
 
 In larger systems, this stage is often extended with full end-to-end tests using browser-based tools such as Playwright.  
 This is intentionally out of scope here, but your current pipeline shows where such tests would fit in a real production workflow.

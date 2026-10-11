@@ -31,12 +31,12 @@ jobs:
     steps:
       # Check out main and staging
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
           path: repo-main
       - name: Checkout staging
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: staging
           path: repo-staging
@@ -46,7 +46,7 @@ jobs:
         with:
           version: 10
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "pnpm"
