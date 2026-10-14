@@ -31,6 +31,23 @@ This lab is intentionally deep.
 Core sections are required.
 At least one extension lane item is required for grading.
 
+### Check your progress \{.no-step\}
+
+Use these checkpoints as you work. If an expected result is missing, inspect status, events, and logs before continuing. You do not need to write an answer for every step.
+
+| Milestone | Expected result |
+| --- | --- |
+| Environment | Your node is `Ready`; ordinary `kubectl` and Docker work inside the VM. |
+| Image | The k3s image list contains `docker.io/library/quote-app:local`. |
+| First deployment | The rollout completes; one application Pod is `1/1` Ready. |
+| Service and access | The Service maps port 80 to 3000; the forwarded `/health` request returns JSON containing `"ok": true`. |
+| Scaling | The saved manifest requests three replicas; three application Pods are Ready. |
+| Reconciliation | After deletion, a replacement Pod has a new name and becomes Ready. |
+| Deliberate failure | A new Pod is `0/1` Ready; its events report a readiness probe HTTP 404. |
+| Recovery | The restored rollout completes and three application Pods are Ready. |
+
+Save the failure output **before fixing it**; the failed Pod and its events may disappear after recovery. Keep only the short evidence listed near the end of this lab.
+
 ---
 
 ## Verify your environment
@@ -263,6 +280,7 @@ Apply it:
 
 ```bash
 kubectl apply -f deployment.yaml
+kubectl rollout status deployment/quote-app --timeout=120s
 ```
 
 Observe:
@@ -271,6 +289,8 @@ Observe:
 kubectl get pods
 kubectl describe pod <pod-name>
 ```
+
+Continue when the rollout completes and your application Pod shows `1/1` in the `READY` column. `Running` alone is not enough.
 
 ---
 
@@ -506,6 +526,19 @@ Answer the following verbally during review:
 - What remains your responsibility?
 - What signals determine application health?
 - How does this differ from Docker Compose?
+
+## Prepare your review evidence \{.no-step\}
+
+Keep these items in `labs/42-kubernetes` in your own fork:
+
+- Your final working `deployment.yaml` and `service.yaml`, plus any extension manifests or code.
+- A short `verification.md` with selected terminal output or linked screenshots showing: the working health request, three Ready replicas, the deleted and replacement Pod names, the deliberate readiness failure, and the recovered rollout. Include the probe failure event; a screenshot of `0/1` alone does not explain the cause.
+- Three brief bullets in that same file: **symptom**, **cause**, and **fix**. Name the probe path you changed and explain why restoring it recovered readiness.
+- For an extension, include the change and its verification result. Identify what the result demonstrates.
+
+Use short excerpts with labels; do not paste whole logs or write a report for each step. The conceptual questions above are for the oral review.
+
+Commit and push your final working files and evidence. Before review, open your fork and have the VM ready to show the current Deployment, Pods, and Service. Explain what your evidence proves and what it leaves untested.
 
 ---
 
