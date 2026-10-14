@@ -18,6 +18,17 @@ import Mermaid from '../components/Mermaid.astro';
 </section>
 
 <section class="title-center-body-left">
+## <Icon name="i-tabler-clipboard-check" />Close out RES507
+
+- Take five minutes for [32 — Course Feedback](/lessons/32-feedback/)
+- If your Lab 30 review is outstanding, let me know
+- Have your fork, failed/recovered CI runs, and extension evidence ready
+- We will finish those reviews during lab work after Kubernetes setup
+
+Lab 30 keeps the agreed **6 / 6 / 4 / 4** rubric.
+</section>
+
+<section class="title-center-body-left">
 ## <Icon name="i-tabler-terminal" />Where we left off
 
 Last course, you built a real app and automated it:
@@ -27,13 +38,18 @@ Last course, you built a real app and automated it:
 - Docker Compose
 - CI pipeline with a runtime check
 
+Quick recap:
+
+- What does Compose start, and where does database data live?
+- What does a successful `/health` request leave untested?
+
 Today: we go from **one machine** to **cluster thinking**.
 </section>
 
 <section>
 ## <Icon name="i-tabler-target" />Goals for today
 
-By the end of these two sessions, you should be able to:
+By the end of this four-hour session, you should be able to:
 
 - Explain why Kubernetes exists
 - Deploy our app to a local cluster
@@ -43,20 +59,16 @@ By the end of these two sessions, you should be able to:
 </section>
 
 <section class="title-center-body-left">
-## <Icon name="i-tabler-clock" />Plan for the day
+## <Icon name="i-tabler-clock" />Plan for this session
 
-<div className="r-vstack gap-8">
-<div>
-<p class="block-title">Session 1 (now)</p>
+- Feedback survey and short recap
 - Kubernetes mental model
-- Lab: first deployment + service + scaling
-</div>
-<div>
-<p class="block-title">Session 2 (later today)</p>
-- What runs Kubernetes (virtualization layer)
-- Operating mindset: updates, failures, debugging
-</div>
-</div>
+- Ubuntu VM setup, image import, first deployment
+- Service access, scaling, Pod replacement
+- Deliberate readiness failure, diagnosis, recovery
+- Start an extension when the core work is verified
+
+Next session: **50/52 — containers, VMs, hypervisors, and architecture**.
 </section>
 
 <section>
@@ -201,7 +213,7 @@ A Service gives you:
 
 - A stable name
 - A stable virtual IP
-- Load balancing to the current Pods
+- Routing to eligible, Ready Pods
 
 Today we will use a simple local Service.
 </section>
@@ -251,7 +263,7 @@ You will mostly use:
 - `kubectl logs ...`
 - `kubectl apply -f ...`
 - `kubectl delete ...`
-- `kubectl scale ...`
+- `kubectl rollout status ...`
 
 If you learn nothing else, learn these.
 </section>
@@ -265,19 +277,21 @@ If you learn nothing else, learn these.
 - Details and events: `kubectl describe`
 - Application output: `kubectl logs`
 
-This is your debugging loop.
+This is your debugging loop, just as `docker compose ps` and `logs` were in RES507.
 </section>
 
 <section>
 ## <Icon name="i-tabler-tools" />Lab setup
 
-<p class="block-title">We will use a local Kubernetes cluster.</p>
+<p class="block-title">Use your existing course Ubuntu VM.</p>
 
-- If the lab machines support Docker: we use **kind**
-- If not: we use a pre-configured VM option
+- Keep your own fork and completed application
+- Run **k3s** with its default containerd runtime
+- Build with Docker, then import the image into k3s
+- Run the lab commands inside the VM
+- Follow Lab 42's setup checks before continuing
 
-Your job is not to fight installation.
-Your job is to learn the model.
+Docker and k3s have separate image stores.
 </section>
 
 <section>
@@ -288,8 +302,8 @@ Your job is to learn the model.
 - Apply the Deployment YAML
 - Apply the Service YAML
 - Confirm `/health` responds
-- Scale replicas up and down
-- Delete a Pod and watch it recover
+- Set three replicas in the saved manifest
+- Delete a Pod and watch its replacement become Ready
 </section>
 
 <section class="title-center-body-left">
@@ -297,27 +311,44 @@ Your job is to learn the model.
 
 <p class="block-title">You will intentionally create a failure:</p>
 
-- Use a bad image tag
-- Or break the container port
+- Change the readiness path to `/does-not-exist`
+- Observe a new Pod running but **not Ready**
+- Find the probe's HTTP 404 in its events
 
 <p class="block-title">Then you will:</p>
 
 - Observe the failure
 - Explain it
-- Fix it and re-apply
+- Restore `/health`, re-apply, and verify recovery
+
+Old healthy replicas may remain available during the failed rollout.
 </section>
 
 <section>
-## <Icon name="i-tabler-clipboard-check" />What I will check today
+## <Icon name="i-tabler-clipboard-check" />Today's check-ins
 
-<p class="block-title">During the session, I may ask you to show:</p>
+- A working deployment with **Ready** Pods
+- The Service configuration and a successful health request
+- Three replicas and an observed Pod replacement
+- A deliberate failure, its cause, and verified recovery
 
-- A working deployment (running Pods)
-- A Service that routes to your Pods
-- A scaling change you made
-- One failure you caused and understood
+Save failure evidence before fixing it. Keep short excerpts and a symptom/cause/fix note.
 
-Understanding is more important than speed.
+Check-ins provide feedback; the final Lab 42 assessment is later.
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-clipboard-check" />Lab 42 assessment
+
+- Deployment and runtime validation: **/6**
+- Failure diagnosis and recovery: **/6**
+- One meaningful, verified extension: **/4**
+- Oral understanding: **/4**
+
+Start an extension when ready; you do not need to finish it today.
+The final assessment timing will be announced in class.
+
+A completed checklist alone does not demonstrate understanding.
 </section>
 
 <section>
@@ -366,7 +397,7 @@ Understanding is more important than speed.
   - Cloud and data centers
   - Embedded systems
   - Automotive and mixed-criticality platforms
-- We will explore this layer in Session 2.
+- We will explore this layer next session in lessons 50/52.
 </div>
 </div>
 </section>
@@ -387,11 +418,12 @@ We will keep it practical.
 ## <Icon name="i-tabler-player-play" class="translate-y-[-0.1em]" />Let’s start the lab
 
 - Open the course website
-- Go to **Lab 42**
+- Open [42 — Kubernetes Deployment and Runtime Validation](/lessons/42-kubernetes-deployment-runtime-validation/)
 - Work in your own GitHub fork
 - Ask questions early
 
-<p class="block-title">When you finish:</p>
-- help a neighbor
-- or pick a stretch goal from the lab
+<p class="block-title">When the core work is verified:</p>
+- Start an extension lane
+- Keep your evidence ready for a check-in
+- Help a neighbor when useful
 </section>
