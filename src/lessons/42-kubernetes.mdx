@@ -27,9 +27,9 @@ In this lab, you will:
 - Simulate failures
 - Explore scaling and resilience
 
-This lab is intentionally deep.
-Core sections are required.
-At least one extension lane item is required for grading.
+For this four-hour session, prioritize the core work: deploy the app, access `/health`, scale to three replicas, observe Pod replacement, and deliberately break and recover readiness.
+
+Start an extension when the core work is verified. You do **not** need to finish the extension during this session. The final assessment takes place later; its timing will be announced in class. One verified extension is needed for full marks under the rubric below.
 
 ### Check your progress \{.no-step\}
 
@@ -457,8 +457,9 @@ Observe how Kubernetes surfaces runtime issues.
 
 ## Extension lanes \{.no-step\}
 
-At least one extension item is required for grading.
-You may complete more for additional distinction.
+Choose **one lane** for the extension part of the final assessment. Complete working changes, show the verification result, and explain what it demonstrates. Adding YAML without checking its effect or writing an explanation alone is insufficient.
+
+Begin as soon as the core work is verified, including while waiting for an instructor review. Continue unfinished extension work before the later assessment. Extra lanes are optional; focus on one well-understood result rather than the number completed.
 
 <details>
   <summary><strong>Lane A: Resource management and limits</strong></summary>
@@ -467,6 +468,8 @@ You may complete more for additional distinction.
   - Observe scheduling behavior
   - Simulate memory pressure
   - Explain how limits protect cluster stability
+
+  **Verification:** show the requests/limits in your manifest and an observed effect, such as an `OOMKilled` termination after exceeding the memory limit. Restore a working configuration and explain the difference between a request and a limit.
 </details>
 
 <details>
@@ -476,6 +479,8 @@ You may complete more for additional distinction.
   - Simulate an internal failure
   - Observe container restarts
   - Explain readiness vs liveness differences
+
+  **Verification:** show a deliberate liveness failure causing the container's restart count to increase, then restore a healthy probe. Explain why the readiness failure in the core lab did not itself restart the container.
 </details>
 
 <details>
@@ -485,6 +490,8 @@ You may complete more for additional distinction.
   - Inject environment variables
   - Change config without rebuilding the image
   - Explain why immutable images matter
+
+  **Verification:** show the app consuming a ConfigMap value, change that value, and roll out Pods that use it without rebuilding the image. Environment variables in existing containers do not update automatically when a ConfigMap changes.
 </details>
 
 <details>
@@ -494,6 +501,8 @@ You may complete more for additional distinction.
   - Use a Service for connectivity
   - Add a PersistentVolumeClaim
   - Validate data persistence across restarts
+
+  **Verification:** insert a distinct quote through the app, replace the PostgreSQL Pod while preserving its PVC, and retrieve the same quote afterwards. Include the database Service and the app's connection configuration.
 </details>
 
 <details>
@@ -503,6 +512,8 @@ You may complete more for additional distinction.
   - Observe CPU usage
   - Discuss what HPA would require
   - Explain why autoscaling depends on metrics
+
+  **Verification:** show measured CPU usage during your load test and explain what an HPA would need to use it. State any missing metrics or resource configuration; do not claim automatic scaling unless you actually configured and observed it.
 </details>
 
 <details>
@@ -512,6 +523,8 @@ You may complete more for additional distinction.
   - Deploy different versions
   - Compare behaviors
   - Explain how this fits into CI/CD pipelines
+
+  **Verification:** show two namespaces running different image versions, access each version, and identify an observable difference. Explain how you kept their resources and configuration separate.
 </details>
 
 ---
@@ -537,6 +550,20 @@ Keep these items in `labs/42-kubernetes` in your own fork:
 Use short excerpts with labels; do not paste whole logs or write a report for each step. The conceptual questions above are for the oral review.
 
 Commit and push your final working files and evidence. Before review, open your fork and have the VM ready to show the current Deployment, Pods, and Service. Explain what your evidence proves and what it leaves untested.
+
+### Grading rubric \{.no-step\}
+
+The final assessment uses four broad categories. In-session check-ins provide feedback; you are not expected to complete the final assessment in this first session.
+
+| Category | Points | Full-credit evidence |
+| --- | --- | --- |
+| Deployment and runtime validation | 6 | Working Deployment and Service, successful health request, three Ready replicas, and observed Pod replacement. Explain how the manifests produce that behavior. |
+| Failure diagnosis and recovery | 6 | Deliberate readiness failure, the event identifying its cause, a justified fix, and verified recovery. Keep the probe rather than removing it to get Ready. |
+| Meaningful extension | 4 | One lane with working changes and the specified verification evidence. Explain the behavior it adds. |
+| Oral understanding | 4 | Explain reconciliation, Deployment versus Service, readiness versus liveness, and what the health-only baseline leaves untested. |
+| **Total** | **20** | |
+
+Points reflect demonstrated behavior and reasoning, not the number of completed steps. Partial work can earn partial credit when you can show and explain it. A working baseline alone does not earn extension or oral-understanding points.
 
 ---
 
