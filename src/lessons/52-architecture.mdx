@@ -12,7 +12,7 @@ published: false
 */}
 ## Introduction \{.no-step\}
 
-In this lab, you will step back from implementation details and think like a systems designer.
+**RES509 — Day 2 (session 5 overall).** In this lab, you will step back from implementation details and think like a systems designer.
 
 You will:
 
@@ -22,9 +22,7 @@ You will:
 - Introduce scaling, resilience, and failure thinking
 - Connect Kubernetes to real-world infrastructure
 
-This lab is intentionally deeper and more open-ended than previous ones.
-
-You are expected to reason, discuss, and justify your decisions.
+First establish a working database-backed app using the guided setup below. Then map its architecture and investigate isolation and failure. Reuse verified Lab 42 extensions. Discuss reasoning questions with your partner and instructor; record concise decisions and evidence rather than an answer to every prompt.
 
 ---
 
@@ -37,19 +35,20 @@ This clarifies how Lab 52 will be graded.
 Your repository must contain:
 
 - [ ] A file named `architecture-notes.md`
-- [ ] Written answers to all reasoning questions
+- [ ] A short decision summary: isolation boundaries, one failure and recovery, and the main tradeoff in your proposed design
+- [ ] Evidence of quote insertion and persistence across database Pod replacement
 - [ ] A production architecture design section
 - [ ] An architecture diagram (PNG, Draw.io export, or image file)
 - [ ] The diagram embedded in or clearly linked from `architecture-notes.md`
 - [ ] Updated Kubernetes manifests with:
   - [ ] Resource requests and limits
   - [ ] Readiness and liveness probes
-  - [ ] Secret-based configuration (no plain-text credentials)
+  - [ ] Secret references for database configuration (no credentials committed)
 - [ ] Evidence of at least one controlled failure and analysis
 
 Everything must be committed and pushed to GitHub.
 
-If it is not in your repository, it cannot be graded.
+Keep implementation and short evidence in your repository; explain conceptual reasoning during the oral review.
 </div>
 
 ---
@@ -58,7 +57,7 @@ If it is not in your repository, it cannot be graded.
 
 Before designing something larger, verify your current Kubernetes setup.
 
-Run:
+Replace `POD_NAME` in later commands with a name from the Pod list. Run:
 
 ```bash
 kubectl get pods
@@ -69,12 +68,210 @@ kubectl get deployments
 Confirm:
 
 - Your quote application is running
-- The database is reachable
+- The `/health` endpoint responds; a database is not yet required at this checkpoint
 - You can port-forward successfully
 
 If something is broken, fix it now.
 
-You will build on this foundation.
+You will build on this foundation. If you have not integrated PostgreSQL yet, complete the next guided section before mapping the full application.
+
+---
+
+## Connect the application to PostgreSQL
+
+PostgreSQL is **required in this lab**, even if you chose another extension in Lab 42. Allow 45–75 minutes for this guided setup. If your database extension already works, keep it and demonstrate the same insertion and persistence checks below; do not replace its credentials, initialization, or PVC. Adapt the verification commands to your existing resource names.
+
+### Prepare the namespace and files
+
+Run these commands inside the course Ubuntu VM, from your own fork. Keep the app manifests in their existing directory:
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+kubectl config set-context --current --namespace=quote-lab
+mkdir -p labs/52-architecture
+cp labs/20-containerized-node-app/db/init.sql labs/52-architecture/init.sql
+cd labs/52-architecture
+kubectl get storageclass
+```
+
+The manifest below uses k3s's `local-path` StorageClass. If it is missing, ask for help before continuing. This is storage on the course VM, not replicated storage or a backup.
+
+Create a ConfigMap containing the existing initialization SQL:
+
+```bash
+kubectl create configmap quote-db-init --from-file=init.sql \
+  --dry-run=client -o yaml > db-init-configmap.yaml
+kubectl apply -f db-init-configmap.yaml
+```
+
+The SQL creates the `quotes` table and example data. Initialization runs only when PostgreSQL starts with an empty data directory; changing this ConfigMap does not migrate an existing database. Do not delete a PVC to apply a schema change.
+
+### Create database configuration
+
+For a new database, create a lab-only password and a Secret. Check for an existing Secret first:
+
+```bash
+kubectl get secret quote-db-secret
+```
+
+If it exists, reuse its configuration. If the result is `NotFound` and you are creating a **new** database, run:
+
+```bash
+db_password=$(openssl rand -hex 16)
+kubectl create secret generic quote-db-secret \
+  --from-literal=POSTGRES_USER=quote \
+  --from-literal=POSTGRES_PASSWORD="$db_password" \
+  --from-literal=POSTGRES_DB=quotes \
+  --from-literal=DATABASE_URL="postgres://quote:$db_password@quote-db:5432/quotes"
+unset db_password
+```
+
+Keep credentials out of Git and screenshots. Commit manifests that reference the Secret, not an export of its contents. The generated hex password is safe to include in this connection URL. Do not regenerate credentials for an existing PVC: PostgreSQL's initialization environment variables do not change an existing database user's password.
+
+### Deploy storage, PostgreSQL, and its Service
+
+Create `database.yaml`:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: quote-db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote-db
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: quote-db
+  template:
+    metadata:
+      labels:
+        app: quote-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18
+          envFrom:
+            - secretRef:
+                name: quote-db-secret
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: quote-db-data
+        - name: init
+          configMap:
+            name: quote-db-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-db
+spec:
+  selector:
+    app: quote-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
+```
+
+The [official PostgreSQL image documentation](https://hub.docker.com/_/postgres) describes its initialization and storage behavior. PostgreSQL 18 uses the parent mount `/var/lib/postgresql`; do not copy an older image's mount path without checking its documentation. `Recreate` avoids overlapping database Pods during a Deployment update. This single-instance teaching deployment has downtime during replacement and is not a production database HA design.
+
+Apply and inspect:
+
+```bash
+kubectl apply -f database.yaml
+kubectl rollout status deployment/quote-db --timeout=180s
+kubectl get pvc quote-db-data
+kubectl get pods -l app=quote-db
+kubectl logs deployment/quote-db
+```
+
+Expect a Bound PVC and one Ready database Pod. If the rollout fails, inspect Pod events and the PVC before continuing. `pg_isready` checks whether PostgreSQL accepts connections; it does not prove that the app credentials or table queries work.
+
+### Configure the application connection
+
+Edit `../42-kubernetes/deployment.yaml`. Add this `env` entry under the existing `quote-app` container, alongside `image`, `ports`, and `readinessProbe`:
+
+```yaml
+env:
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: quote-db-secret
+        key: DATABASE_URL
+```
+
+Merge it into an existing `env` list if you already have one. Keep three replicas and the `/health` readiness probe. The app consumes `DATABASE_URL`; setting only `POSTGRES_USER` and `POSTGRES_PASSWORD` in the app container does not configure its connection.
+
+```bash
+kubectl apply -f ../42-kubernetes/deployment.yaml
+kubectl rollout status deployment/quote-app --timeout=120s
+```
+
+### Verify quote operations and persistence
+
+In another VM terminal, start or restart the app port-forward:
+
+```bash
+kubectl port-forward svc/quote-app 8080:80
+```
+
+From your working VM terminal, insert a uniquely named quote through the application and read it back:
+
+```bash
+quote_marker="res509-$(date +%s)"
+curl --fail --show-error --max-time 10 \
+  --data-urlencode "author=RES509" \
+  --data-urlencode "text=$quote_marker" \
+  http://127.0.0.1:8080/quotes
+curl --fail --show-error --max-time 10 http://127.0.0.1:8080/ -o /tmp/res509-quotes.html
+grep -F "$quote_marker" /tmp/res509-quotes.html
+```
+
+Expect the marker in the returned page. If not, check that your Session 2 SELECT and INSERT handlers are implemented, inspect app logs, and verify the connection and table initialization. A passing `/health` is insufficient.
+
+Replace the database Pod while keeping its PVC:
+
+```bash
+kubectl get pods -l app=quote-db
+kubectl rollout restart deployment/quote-db
+kubectl rollout status deployment/quote-db --timeout=180s
+kubectl get pods -l app=quote-db
+curl --fail --show-error --max-time 10 http://127.0.0.1:8080/ -o /tmp/res509-quotes-after.html
+grep -F "$quote_marker" /tmp/res509-quotes-after.html
+```
+
+Expect a new database Pod and the same quote. Keep the marker value in this terminal until the check is complete. Save the two Pod names and the before/after quote result. Do not delete the PVC. Explain why this proves persistence across Pod replacement but not recovery after VM or disk loss.
 
 ---
 
@@ -91,7 +288,7 @@ Your diagram must include:
 - Service
 - PostgreSQL database
 
-Answer in writing:
+Discuss, then note the main design decision:
 
 - Where does isolation happen?
 - What restarts automatically?
@@ -118,23 +315,13 @@ Then answer:
 - When would you prefer a VM over a container?
 - When would you combine both?
 
-Write your answers in a file named:
-
-```bash
-architecture-notes.md
-```
-
-Commit and push your reasoning.
+Keep the comparison table in `architecture-notes.md` with one sentence explaining when you would combine VMs and containers. Discuss the remaining questions orally.
 
 ---
 
 ## Introduce horizontal scaling
 
-Scale your deployment.
-
-```bash
-kubectl scale deployment quote-app --replicas=3
-```
+Reuse the three replicas from Lab 42. If needed, set `replicas: 3` in the saved app manifest and apply it. Verify the saved desired state and live state agree; do not scale PostgreSQL this way.
 
 Verify:
 
@@ -147,9 +334,9 @@ You should see multiple replicas.
 Now test behavior:
 
 - Port-forward the service
-- Refresh the page multiple times
+- Retrieve a quote inserted through the application
 
-Observe whether responses appear consistent.
+A Service port-forward selects one Pod, so refreshing it does not test load balancing. Use an in-cluster client as in Lab 42 to test the Service path.
 
 Answer:
 
@@ -163,7 +350,7 @@ Answer:
 Delete one running pod.
 
 ```bash
-kubectl delete pod <pod-name>
+kubectl delete pod POD_NAME
 ```
 
 Immediately observe:
@@ -178,7 +365,7 @@ Answer:
 - Why?
 - What would happen if the node itself failed?
 
-Write your answers in `architecture-notes.md`.
+Discuss the questions orally; save only the failure observation and recovery evidence.
 
 ---
 
@@ -203,7 +390,7 @@ Apply the updated manifest.
 Observe:
 
 ```bash
-kubectl describe pod <pod-name>
+kubectl describe pod POD_NAME
 ```
 
 Answer:
@@ -222,22 +409,22 @@ Example:
 ```yaml
 livenessProbe:
   httpGet:
-    path: /
+    path: /health
     port: 3000
   initialDelaySeconds: 5
   periodSeconds: 10
 
 readinessProbe:
   httpGet:
-    path: /
+    path: /health
     port: 3000
   initialDelaySeconds: 5
   periodSeconds: 5
 ```
 
-Apply and observe behavior.
+Keep probes from your Lab 42 extension if they already meet this configuration. `/health` is deliberately independent of PostgreSQL; a database outage should not trigger an app restart loop. Verify database-backed operations separately.
 
-Break your app temporarily to see how probes react.
+Change only the liveness path to `/does-not-exist`, observe restart counts and events, then restore `/health`. Reuse existing evidence if you already demonstrated this in Lab 42.
 
 Answer:
 
@@ -248,7 +435,7 @@ Answer:
 
 ## Connect Kubernetes to virtualization \{.no-step\}
 
-Discuss and write answers:
+Discuss:
 
 - What runs underneath your k3s cluster?
 - Is Kubernetes replacing virtualization?
@@ -260,7 +447,7 @@ Explain how this stack might look in:
 - An embedded automotive system
 - A financial institution
 
-Add this section to `architecture-notes.md`.
+Add one sentence about the isolation boundary you chose to `architecture-notes.md`.
 
 ---
 
@@ -304,7 +491,7 @@ Apply and observe the failure.
 Capture:
 
 ```bash
-kubectl describe pod <pod-name>
+kubectl describe pod POD_NAME
 kubectl get events
 ```
 
@@ -314,58 +501,21 @@ You must show at least one failed state in the Kubernetes events.
 
 ---
 
-## Required extension: secret-based configuration
+## Verify Secret-based configuration
 
-This extension is required for everyone.
+The guided database setup already uses a Secret. If you reused a Lab 42 database, ensure its database credentials and the app's `DATABASE_URL` come from Secret references too. Do not create a second, unrelated set of credentials.
 
-Refactor your database credentials so they are not stored in plain text inside your deployment manifest.
+Inspect your saved manifests and verify quote insertion and retrieval again. Do not print or commit Secret values. A Secret's base64 representation is not encryption; access control and encryption at rest depend on cluster configuration. Refer to the [Kubernetes Secret guidance](https://kubernetes.io/docs/concepts/configuration/secret/) when explaining your deployment's protections.
 
-### Create a Secret
-
-Create a secret for your database credentials:
-
-```bash
-kubectl create secret generic quote-db-secret \
-  --from-literal=POSTGRES_USER=quote \
-  --from-literal=POSTGRES_PASSWORD=quote
-```
-
-### Reference the Secret in your deployment
-
-Modify your Deployment manifest so environment variables are loaded from the Secret instead of hard-coded values.
-
-Example structure:
-
-```yaml
-env:
-  - name: POSTGRES_USER
-    valueFrom:
-      secretKeyRef:
-        name: quote-db-secret
-        key: POSTGRES_USER
-  - name: POSTGRES_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: quote-db-secret
-        key: POSTGRES_PASSWORD
-```
-
-Apply your changes and verify the application still works.
-
-Answer in `architecture-notes.md`:
-
-- Why is this better than plain-text configuration?
-- Is a Secret encrypted by default? Where?
-
-Commit and push your changes.
+Discuss why Secret references are useful and what they do not protect. Keep one sentence about this tradeoff in your decision summary.
 
 ---
 
-## 🆕 New for Session 3: Controlled rollouts and safe rollback \{.no-step\}
+## Continue in RES509 Day 3: Controlled rollouts and safe rollback \{.no-step\}
 
 <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 my-4">
 
-This section is new. It is designed to keep strong students busy and to prepare everyone for the final session.
+Continue this section with lesson 60 on RES509 Day 3. Start early only after the Day 2 database, architecture, and probe work is verified. The rollout extension below belongs to that later work.
 
 **What you will practice:**
 - Make a controlled change
@@ -378,12 +528,12 @@ This section is new. It is designed to keep strong students busy and to prepare 
 
 ## Perform a controlled rollout
 
-Pick one small, safe change. For example:
+Plan one small, safe change, but build the baseline `v1` in the next section **before editing**. For example:
 - Change the page title in the template
 - Add a new route that returns a short message
 - Add a tiny log line
 
-Commit the change locally first.
+After building `v1`, make and commit the change, then build `v2`.
 
 ## Build and publish a versioned image \{.no-step\}
 
@@ -391,7 +541,11 @@ You need two image versions to demonstrate a rollout.
 
 If you already have a workflow from the previous course, you can reuse it.
 
-Otherwise, keep it simple and build locally.
+Otherwise, keep it simple and build locally. First return to the application directory:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/labs/20-containerized-node-app"
+```
 
 - Build a versioned image tag:
 ```bash
@@ -403,11 +557,12 @@ docker build -t quote-app:v1 -f docker/Dockerfile .
 docker build -t quote-app:v2 -f docker/Dockerfile .
 ```
 
-If you are using k3s with `containerd`, you may need to import the image.
+Build from `labs/20-containerized-node-app` in the VM. With the course k3s/containerd setup, import both tags before deploying or rolling back; Docker images are not automatically available to k3s.
 
 Example (local, no registry):
 ```bash
-docker save quote-app:v2 | sudo k3s ctr images import -
+docker save quote-app:v1 quote-app:v2 -o /tmp/quote-app-versions.tar
+sudo k3s ctr images import /tmp/quote-app-versions.tar
 ```
 
 ## Update the Deployment to the new image
@@ -440,14 +595,14 @@ Introduce a controlled failure so the rollout does not complete.
 
 Examples:
 - Set the image to a tag that does not exist
-- Set the container port to the wrong value
+- Set the readiness probe port to a port where the app is not listening
 - Break your readiness probe path
 
 Apply the change and confirm you can see evidence of failure:
 
 ```bash
 kubectl get pods
-kubectl describe pod <pod-name>
+kubectl describe pod POD_NAME
 kubectl get events
 ```
 
@@ -462,7 +617,10 @@ Undo the broken rollout:
 
 ```bash
 kubectl rollout undo deployment quote-app
+kubectl rollout status deployment/quote-app --timeout=120s
 ```
+
+Restore the saved manifest to the recovered image and probe configuration, then apply it and verify again. Rollback changes the cluster, not your Git files.
 
 Verify:
 - The application becomes healthy again
@@ -617,7 +775,7 @@ For your chosen challenge:
 
 Add a dedicated section in `architecture-notes.md` titled:
 
-```
+```text
 Beast Mode Challenge
 ```
 

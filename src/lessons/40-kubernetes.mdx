@@ -14,11 +14,11 @@ import Mermaid from '../components/Mermaid.astro';
 <section>
   <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
   ## <Icon name="i-tabler-box" />From Compose to Kubernetes
-  ### Virtualisation avancée (Course 2)
+  ### RES509 — Virtualisation avancée
 </section>
 
 <section class="title-center-body-left">
-## <Icon name="i-tabler-clipboard-check" />Close out RES507
+## <Icon name="i-tabler-clipboard-check" />Close out RES507 (10 minutes)
 
 - Take five minutes for [32 — Course Feedback](/lessons/32-feedback/)
 - If your Lab 30 review is outstanding, let me know
@@ -31,14 +31,9 @@ Lab 30 keeps the agreed **6 / 6 / 4 / 4** rubric.
 <section class="title-center-body-left">
 ## <Icon name="i-tabler-terminal" />Where we left off
 
-Last course, you built a real app and automated it:
+Your app now has Git, Docker Compose, and CI.
 
-- Git workflow
-- Docker image
-- Docker Compose
-- CI pipeline with a runtime check
-
-Quick recap:
+Recall before we build on it:
 
 - What does Compose start, and where does database data live?
 - What does a successful `/health` request leave untested?
@@ -59,27 +54,37 @@ By the end of this four-hour session, you should be able to:
 </section>
 
 <section class="title-center-body-left">
-## <Icon name="i-tabler-clock" />Plan for this session
+## <Icon name="i-tabler-road" />RES509 starts here
 
-- Feedback survey and short recap
-- Kubernetes mental model
-- Ubuntu VM setup, image import, first deployment
-- Service access, scaling, Pod replacement
-- Deliberate readiness failure, diagnosis, recovery
-- Start an extension when the core work is verified
+**Day 1 — session 4 overall**
 
-Next session: **50/52 — containers, VMs, hypervisors, and architecture**.
+- Today: operate an app with Kubernetes (40/42)
+- Next: databases, VMs, and isolation (50/52)
+- Then: production changes and architecture (60/62)
+
+Lab 30 belongs to RES507. Lab 42 belongs to RES509.
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-clock" />Our four hours
+
+- 10 min: closeout and course introduction
+- 30 min: mental model and prediction questions
+- 55 min: setup, image import, first Pod
+- 15 min: break and setup buffer
+- 80 min: Service, scaling, failure and recovery
+- 50 min: extensions, check-ins, and evidence
 </section>
 
 <section>
 ## <Icon name="i-tabler-stack-2" />Docker Compose is great
 
-<p class="block-title">Compose is perfect when:</p>
+<p class="block-title">Compose manages services on one Docker host:</p>
 
-- You own the machine
-- You deploy once, then leave it alone
-- Restarting manually is fine
-- Scaling means “run two copies myself”
+- Define services together in YAML
+- Restart containers using restart policies
+- Scale compatible services with `up --scale`
+- Keep a simple local development environment
 </section>
 
 <section>
@@ -88,7 +93,7 @@ Next session: **50/52 — containers, VMs, hypervisors, and architecture**.
 <p class="block-title">Compose does not give you:</p>
 
 - Scheduling across machines
-- Self-healing across failures
+- Rescheduling workloads onto another host
 - A consistent model for rolling updates
 - A control plane that watches and reconciles state
 </section>
@@ -112,7 +117,7 @@ Next session: **50/52 — containers, VMs, hypervisors, and architecture**.
 </div>
 
 Kubernetes treats Pods like cattle.
-State should live outside the container.
+Persistent data needs storage that survives Pod replacement.
 </section>
 
 <section class="title-center-body-left">
@@ -231,30 +236,53 @@ You apply YAML, for example:
 You can version it in git, review it, and automate it in CI.
 </section>
 
-<section>
-## <Icon name="i-tabler-arrows-exchange" />Imperative vs Declarative
+<section class="title-center-body-left">
+## <Icon name="i-tabler-arrows-exchange" />Commands and manifests
 
-<div class="two-col">
-<div>
-<p class="block-title">Imperative:</p>
-- “Run this container now.”
-- One-time command
-</div>
-<div>
-<p class="block-title">Declarative:</p>
-- “This should exist.”
-- System keeps it true over time
-</div>
-</div>
-<p class="block-title">Example:</p>
-- `kubectl run` → imperative
-- `kubectl apply -f deployment.yaml` → declarative
+- **Imperative:** request a change with a command
+- **Declarative:** apply desired state from saved YAML
+- A Deployment reconciles replicas with either approach
+- A bare Pod has no ReplicaSet to replace it after deletion
 
-_Kubernetes is primarily declarative._
+Keep the desired state in Git; use `apply` to reproduce it.
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-network" />Our cluster today
+
+- `kubectl` sends requests to the API server
+- The control plane schedules and reconciles work
+- A node runs Pods through its container runtime
+- k3s runs both roles on our single Ubuntu VM
+- A namespace groups resources inside the cluster
+
+Three replicas on one VM do **not** survive losing that VM.
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-file-code" />Read the manifest
+
+- Deployment: desired replica count and Pod template
+- Pod label: `app: quote-app`
+- Service selector: the same `app: quote-app`
+- Service port `80` forwards to app port `3000`
+
+Find those fields in Lab 42 before applying the YAML.
+</section>
+
+<section class="title-center-body-left">
+## <Icon name="i-tabler-heart" />Ready versus alive
+
+- **Readiness:** should normal Service traffic reach this Pod?
+- **Liveness:** should this container be restarted?
+- Readiness failure alone does not restart a container
+- Our `/health` checks HTTP, not database operations
+
+A healthy probe proves only what its endpoint checks.
 </section>
 
 <section>
-## <Icon name="i-tabler-terminal-2" />The only commands you really need today
+## <Icon name="i-tabler-terminal-2" />Your debugging toolkit
 
 You will mostly use:
 
@@ -265,7 +293,7 @@ You will mostly use:
 - `kubectl delete ...`
 - `kubectl rollout status ...`
 
-If you learn nothing else, learn these.
+Use status → events → logs to explain a failure.
 </section>
 
 <section>
@@ -315,11 +343,7 @@ Docker and k3s have separate image stores.
 - Observe a new Pod running but **not Ready**
 - Find the probe's HTTP 404 in its events
 
-<p class="block-title">Then you will:</p>
-
-- Observe the failure
-- Explain it
-- Restore `/health`, re-apply, and verify recovery
+Restore `/health`, re-apply, and verify recovery.
 
 Old healthy replicas may remain available during the failed rollout.
 </section>

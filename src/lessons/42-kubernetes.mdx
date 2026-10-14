@@ -6,9 +6,9 @@ type: lab
 availableFrom: 2026-10-15T08:30:00+02:00
 ---
 
-In this lab, you will deploy your containerized application to Kubernetes and validate that it behaves correctly under real orchestration conditions.
+**RES509 — Day 1 (session 4 overall).** In this lab, you will deploy your containerized application to Kubernetes and validate that it behaves correctly under real orchestration conditions.
 
-You will move from **single-container execution** to **cluster-managed execution**.
+You will move from **single-host Docker Compose** to **cluster-managed execution**. PostgreSQL is optional today and required through a guided setup in Lab 52. Lab 42 is assessed in RES509; outstanding Lab 30 work remains part of RES507.
 
 ## Context and goals \{.no-step\}
 
@@ -52,11 +52,24 @@ Save the failure output **before fixing it**; the failed Pod and its events may 
 
 ## Verify your environment
 
-Your goal is to end up with a working Kubernetes cluster and `kubectl` access.
+Your goal is to end up with a working Kubernetes cluster and `kubectl` access. Whenever a command contains `POD_NAME`, replace it with an actual name from `kubectl get pods`; do not paste the placeholder literally.
 
 Use **k3s on your course Ubuntu Server VM**, reusing the VM and your own GitHub fork from RES507. Run all shell commands in this lab **inside that VM**, including Docker builds and image imports.
 
-Use the branch containing your completed Session 2 application. Do not replace it with a fresh copy of the scaffold.
+Use the branch containing your completed Session 2 application. Do not replace it with a fresh copy of the scaffold. If it is missing, fetch your fork, find that branch with `git branch -a`, and ask for help before switching with uncommitted changes. Verify `/health` in your existing app before troubleshooting Kubernetes.
+
+Check capacity before installing:
+
+```bash
+nproc
+free -h
+df -h / /tmp
+cat /etc/os-release
+```
+
+K3s documents a server minimum of **two CPU cores and 2 GB RAM**, before your workloads. For this lab, **4 GB RAM and 10 GB free disk** are planning recommendations for the builds, images, and database work, not a measured guarantee. Use the course Ubuntu Server VM; ask for help if capacity is low. See the [k3s requirements](https://docs.k3s.io/installation/requirements).
+
+If your node is not Ready after 20 minutes of setup work, request an instructor check-in. If it is already Ready, continue; you do not need to wait for the rest of the class.
 
 ### Set up k3s and kubectl access \{.no-step\}
 
@@ -69,15 +82,17 @@ Use the branch containing your completed Session 2 application. Do not replace i
   command -v k3s
   ```
 
-  If this prints a path, **skip installation** and continue with kubeconfig setup below. Reuse your existing cluster; do not reinstall or change its runtime during this lab.
+  If this prints a path, **skip installation** and check the service below before configuring kubectl. Reuse your existing cluster; do not reinstall or change its runtime during this lab.
 
   If it prints nothing, install a single-node cluster with the default containerd runtime:
 
   ```bash
   sudo apt update
   curl -sfL https://get.k3s.io -o /tmp/install-k3s.sh
-  sudo sh /tmp/install-k3s.sh
+  sudo env INSTALL_K3S_CHANNEL=stable sh /tmp/install-k3s.sh
   ```
+
+  The official installer selects a release from the stable channel; you do not need a version number beforehand. Reuse an existing working cluster rather than upgrading it for this lab. After installation, record `k3s --version` and your Ubuntu version in your short verification notes.
 
   The installer needs administrator privileges to create the system service. Docker remains your image build tool; k3s runs the Kubernetes workloads.
 
@@ -93,6 +108,8 @@ Use the branch containing your completed Session 2 application. Do not replace i
   sudo journalctl -u k3s -n 50 --no-pager
   ```
 
+  This replaces the VM user's default kubeconfig with this course cluster's configuration. If you already use that file for another cluster, preserve it and ask for help first. Do not commit kubeconfig to Git.
+
   Copy the cluster configuration into your own home directory. Run these commands as your normal VM user:
 
   ```bash
@@ -105,8 +122,6 @@ Use the branch containing your completed Session 2 application. Do not replace i
 
   The append command configures future Bash terminals; the `export` configures your current terminal. Running the append command again adds a harmless duplicate of the same assignment.
 
-  This replaces the VM user's default kubeconfig with this course cluster's configuration. If you already use that file for another cluster, preserve it and ask for help first. Do not commit kubeconfig to Git.
-
   Use ordinary `kubectl`, **not `sudo kubectl`**. Setting `KUBECONFIG` explicitly ensures it uses your writable home-directory copy rather than the protected system file.
 
   Wait for the node to become Ready, then verify access:
@@ -116,6 +131,8 @@ Use the branch containing your completed Session 2 application. Do not replace i
   kubectl get nodes -o wide
   kubectl get pods -A
   ```
+
+  Check the `CONTAINER-RUNTIME` column in `kubectl get nodes -o wide`: this lab expects `containerd`. If it shows another runtime, ask for help instead of changing it. Record `k3s --version` in your verification notes.
 
   Continue only when your node is `Ready`. If the wait times out, inspect the service logs above and ask for help.
 </details>
@@ -151,7 +168,7 @@ Create a namespace for this lab:
 kubectl create namespace quote-lab --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Set it as default for your session:
+A namespace groups this lab’s resources. Set it as the default in your current kubeconfig context (this persists across terminals and future sessions):
 
 ```bash
 kubectl config set-context --current --namespace=quote-lab
@@ -160,8 +177,11 @@ kubectl config set-context --current --namespace=quote-lab
 Verify:
 
 ```bash
+kubectl config view --minify -o jsonpath='{..namespace}'
 kubectl get pods
 ```
+
+Expect `quote-lab`; an empty Pod list is normal before deploying. Use `kubectl -n quote-lab ...` if another exercise changes your default namespace.
 
 ---
 
@@ -198,12 +218,12 @@ If you change application code later, build and import a new tag, such as `quote
 <details>
   <summary><strong>Troubleshooting: image not found or cluster setup</strong></summary>
 
-  For `ImagePullBackOff` or `ErrImagePull`, inspect the Pod's events with `kubectl describe pod <pod-name>`. Confirm that the Deployment image matches the imported tag exactly and that the import happened on this VM.
+  For `ImagePullBackOff` or `ErrImagePull`, inspect the Pod's events with `kubectl describe pod POD_NAME`. Confirm that the Deployment image matches the imported tag exactly and that the import happened on this VM.
 
   After correcting an import for the existing tag, delete the failing Pod to let its Deployment create a replacement:
 
   ```bash
-  kubectl delete pod <pod-name>
+  kubectl delete pod POD_NAME
   kubectl get pods -w
   ```
 
@@ -274,6 +294,10 @@ spec:
             periodSeconds: 5
 ```
 
+Before applying, identify `replicas`, the Pod template’s `app: quote-app` label, and the Deployment selector matching that label. A Deployment manages ReplicaSets, which maintain the requested Pods.
+
+**Readiness** determines eligibility for normal Service traffic. **Liveness** can trigger container restart. This baseline uses readiness only. Neither probe validates database behavior unless its endpoint actually checks the database.
+
 Apply it:
 
 ```bash
@@ -285,7 +309,7 @@ Observe:
 
 ```bash
 kubectl get pods
-kubectl describe pod <pod-name>
+kubectl describe pod POD_NAME
 ```
 
 Continue when the rollout completes and your application Pod shows `1/1` in the `READY` column. `Running` alone is not enough.
@@ -309,6 +333,8 @@ spec:
       targetPort: 3000
   type: ClusterIP
 ```
+
+Identify the Service selector matching the Pod label. `port: 80` is the Service port; `targetPort: 3000` is the application’s listening port. A `containerPort` declaration alone does not make the application listen there.
 
 Apply it:
 
@@ -340,17 +366,33 @@ curl --fail --show-error --max-time 5 http://127.0.0.1:8080/health
 
 Expect JSON containing `"ok": true`. You are checking application health; quote retrieval and insertion are part of the database extension.
 
-`ClusterIP` is internal to the cluster. This port-forward listens on the **VM's loopback interface**, not your laptop's. To use your laptop browser, keep the VM port-forward running and open another terminal **on your laptop**:
+`ClusterIP` is internal to the cluster. This port-forward listens on the **VM's loopback interface**, not your laptop's. To use your laptop browser, keep the VM port-forward running and open another terminal **on your laptop**, using Bash or zsh (on Windows, use WSL Bash):
 
 ```bash
-read -r -p "VM SSH username: " vm_user
-read -r -p "VM IP address: " vm_host
+printf "VM SSH username: "
+read -r vm_user
+printf "VM IP address: "
+read -r vm_host
 ssh -N -L 8080:127.0.0.1:8080 "$vm_user@$vm_host"
 ```
 
 Use the same SSH destination and connection options you normally use to reach the course VM. Leave this tunnel running, then open [the health endpoint](http://localhost:8080/health) in your laptop browser. If using VS Code Remote SSH, you can instead forward the VM's port 8080 through its Ports panel.
 
 A port-forward to a Service selects **one Pod** and forwards directly to it. It does not demonstrate Service load balancing or readiness-based traffic selection. If that Pod disappears, restart the VM port-forward; other Ready replicas do not keep that particular forwarding session alive.
+
+### Verify the in-cluster Service path
+
+From your VM, create a temporary client Pod in `quote-lab`:
+
+```bash
+kubectl run service-check --image=busybox:1.37 --restart=Never --command -- sleep 3600
+kubectl wait --for=condition=Ready pod/service-check --timeout=120s
+kubectl exec service-check -- wget -qO- http://quote-app/health
+```
+
+Expect `{"ok":true}`. This request uses cluster DNS and the Service path, unlike port-forwarding. If it fails, inspect the client Pod’s events, the Service selector, and its EndpointSlices. An image download error is a client setup problem, not proof that the Service is broken. If `service-check` already exists from an earlier attempt, reuse it if Ready or delete that diagnostic Pod and recreate it.
+
+Keep the client for the readiness exercise. Save this result beside the port-forward result.
 
 ## Scale the Deployment
 
@@ -373,6 +415,8 @@ Keep `replicas: 3` in the file for the following exercises. Reapplying a file wi
 
 ## Observe Pod replacement
 
+Predict: which object will create the replacement, and will its name be the same? Three Pods on this single-node cluster do not protect against losing the VM.
+
 In one VM terminal, watch the Pods:
 
 ```bash
@@ -392,7 +436,7 @@ The remaining Ready Pods can remain eligible for Service traffic while the repla
 
 ## Introduce a controlled readiness failure
 
-This step is required for grading.
+This step is required for grading. Predict first: will the container restart, and can old healthy replicas still serve requests?
 
 In `deployment.yaml`, change only the readiness probe's path from `/health` to `/does-not-exist`. Keep the image, application port, and three replicas unchanged. Apply the change:
 
@@ -421,6 +465,8 @@ Inspect the Service's endpoint readiness:
 kubectl get endpointslices -l kubernetes.io/service-name=quote-app -o yaml
 ```
 
+In each endpoint, compare `targetRef.name` with your Pod list and find `conditions.ready`. Expect `false` for the new failing Pod and `true` for healthy Pods.
+
 The new unready Pods are not eligible for normal Service traffic. With the default rolling-update strategy, old healthy replicas can remain available while the rollout is stalled. The Service may therefore still work; a total outage is **not** the expected proof of this failure. Do not use a successful port-forward request as proof that the new Pods are Ready.
 
 An invalid image tag would produce a different failure (`ErrImagePull` or `ImagePullBackOff`), rather than a readiness probe failure. Use the bad probe path for this exercise so you can distinguish the two.
@@ -437,25 +483,22 @@ Confirm the rollout completes and three Pods are Ready once the rollout settles.
 
 ---
 
-## Inspect logs and events
+## Compare your diagnostic signals
 
-Inspect application logs:
+Compare your observations verbally: status showed `0/1`, events identified the HTTP 404, and logs showed the application’s activity. Which source explained the cause most directly?
 
-```bash
-kubectl logs <pod-name>
-```
-
-Inspect cluster events:
+Repeat the in-cluster request after recovery, then remove the diagnostic client:
 
 ```bash
-kubectl get events
+kubectl exec service-check -- wget -qO- http://quote-app/health
+kubectl delete pod service-check
 ```
-
-Observe how Kubernetes surfaces runtime issues.
 
 ---
 
 ## Extension lanes \{.no-step\}
+
+If unsure, start with **Lane B**. Time estimates below are planning guides after the core, not deadlines. Lanes A/B overlap with Lab 52; carry that work forward rather than repeating it.
 
 Choose **one lane** for the extension part of the final assessment. Complete working changes, show the verification result, and explain what it demonstrates. Adding YAML without checking its effect or writing an explanation alone is insufficient.
 
@@ -463,6 +506,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 
 <details>
   <summary><strong>Lane A: Resource management and limits</strong></summary>
+
+  **Intermediate · 45–60 min.** Start with requests of `100m` CPU / `128Mi` memory and limits of `250m` / `256Mi`. Use a separate disposable Node.js test Pod with a small memory limit and retained, touched buffers to investigate memory pressure; do not stress the whole VM. Inspect `lastState.terminated.reason` and `kubectl logs POD_NAME --previous`; a JavaScript heap error alone is not proof of `OOMKilled`.
 
   - Add resource requests and limits to the container
   - Observe scheduling behavior
@@ -475,6 +520,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 <details>
   <summary><strong>Lane B: Liveness probes</strong></summary>
 
+  **Recommended starting lane · 20–35 min.** Copy the readiness HTTP probe into `livenessProbe` using `/health`. Change only liveness to `/does-not-exist`, wait for failed checks, and inspect restart counts and events. Restore the path afterward. This deliberate bad URL models a failed check; it is not a real application deadlock.
+
   - Add a livenessProbe
   - Simulate an internal failure
   - Observe container restarts
@@ -485,6 +532,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 
 <details>
   <summary><strong>Lane C: Configuration management</strong></summary>
+
+  **Intermediate · 30–45 min.** Start with the app’s existing `PORT` setting. Put `PORT=3000` in a ConfigMap and use `configMapKeyRef`. Change it to `3001`, restart the Deployment, and update the Service targetPort, probe ports, and containerPort together. Verify a request through the Service; restore consistent ports afterward.
 
   - Move configuration to a ConfigMap
   - Inject environment variables
@@ -497,6 +546,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 <details>
   <summary><strong>Lane D: Database integration</strong></summary>
 
+  **Advanced · 60–90+ min.** Follow the guided database setup in Lab 52 when the instructor makes it available. Reuse `labs/20-containerized-node-app/db/init.sql`, supply the app’s `DATABASE_URL`, and mount PostgreSQL 18 storage at `/var/lib/postgresql`. Persistence across a Pod replacement is required; creating an empty database alone is insufficient. This is optional today and required in Lab 52. Keep your verified work for that lab.
+
   - Deploy PostgreSQL inside Kubernetes
   - Use a Service for connectivity
   - Add a PersistentVolumeClaim
@@ -508,6 +559,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 <details>
   <summary><strong>Lane E: Horizontal scaling reasoning</strong></summary>
 
+  **Intermediate · 45–60 min.** First check `kubectl top pods` and `kubectl top nodes`. If metrics are unavailable, resolve that with the instructor before choosing this lane. Generate a bounded stream of `/health` requests from a temporary client Pod and compare idle/load CPU readings. CPU-utilization HPA also needs CPU requests. Clean up the load client afterward.
+
   - Simulate traffic load
   - Observe CPU usage
   - Discuss what HPA would require
@@ -518,6 +571,8 @@ Begin as soon as the core work is verified, including while waiting for an instr
 
 <details>
   <summary><strong>Lane F: Multi-stage validation</strong></summary>
+
+  **Advanced · 60–90 min.** Add an observable `/version` response, build and import two distinct image tags, then apply each namespace’s manifests with an explicit `-n`. Verify each version with separate port-forwards. Namespaces separate names and scope; they do not automatically isolate network traffic.
 
   - Create separate namespaces for dev and staging
   - Deploy different versions
@@ -543,7 +598,7 @@ Answer the following verbally during review:
 Keep these items in `labs/42-kubernetes` in your own fork:
 
 - Your final working `deployment.yaml` and `service.yaml`, plus any extension manifests or code.
-- A short `verification.md` with selected terminal output or linked screenshots showing: the working health request, three Ready replicas, the deleted and replacement Pod names, the deliberate readiness failure, and the recovered rollout. Include the probe failure event; a screenshot of `0/1` alone does not explain the cause.
+- A short `verification.md` with selected terminal output or linked screenshots showing: the forwarded and in-cluster health requests, three Ready replicas, the deleted and replacement Pod names, the deliberate readiness failure, and the recovered rollout. Include the probe failure event; a screenshot of `0/1` alone does not explain the cause.
 - Three brief bullets in that same file: **symptom**, **cause**, and **fix**. Name the probe path you changed and explain why restoring it recovered readiness.
 - For an extension, include the change and its verification result. Identify what the result demonstrates.
 
@@ -577,7 +632,7 @@ You have:
 - Simulated failures
 - Explored scaling and resilience
 
-This completes the practical orchestration portion of the course.
+This establishes the orchestration baseline for RES509. Next, Lab 52 adds a required, guided PostgreSQL deployment and connects this system to VMs, isolation, and production architecture. Keep your cluster, manifests, and evidence for that work.
 
 In larger systems, this foundation expands to:
 
