@@ -99,13 +99,11 @@ Use the branch containing your completed Session 2 application. Do not replace i
   mkdir -p "$HOME/.kube"
   sudo install -m 600 -o "$(id -u)" -g "$(id -g)" \
     /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+  echo 'export KUBECONFIG="$HOME/.kube/config"' >> ~/.bashrc
   export KUBECONFIG="$HOME/.kube/config"
-
-  # Persist once for future Bash sessions
-  if ! grep -qxF 'export KUBECONFIG="$HOME/.kube/config"' "$HOME/.bashrc"; then
-    echo 'export KUBECONFIG="$HOME/.kube/config"' >> "$HOME/.bashrc"
-  fi
   ```
+
+  The append command configures future Bash terminals; the `export` configures your current terminal. Running the append command again adds a harmless duplicate of the same assignment.
 
   This replaces the VM user's default kubeconfig with this course cluster's configuration. If you already use that file for another cluster, preserve it and ask for help first. Do not commit kubeconfig to Git.
 
