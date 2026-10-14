@@ -226,6 +226,8 @@ Create `deployment.yaml` and `service.yaml` here, and run the following manifest
 
 ## Create a Deployment
 
+The baseline deploys the application **without PostgreSQL**. Its `/health` route returns `{"ok": true}` without querying the database. Your completed quote page and quote insertion may fail until you add database integration; that does not invalidate this health-only baseline.
+
 Create a file named `deployment.yaml` with the following content:
 
 ```yaml
@@ -304,103 +306,116 @@ kubectl get svc
 
 ---
 
-## Access the application
+## Access the health endpoint
 
-Use port-forwarding:
+In a VM terminal, start port-forwarding and leave it running:
 
 ```bash
 kubectl port-forward svc/quote-app 8080:80
 ```
 
-Open:
-
-```
-http://localhost:8080
-```
-
-Verify that:
-
-- The app loads
-- The health endpoint responds
-- Basic routes function correctly
-
----
-
-## Validate readiness behavior
-
-Delete the running pod:
+Wait for the `Forwarding from 127.0.0.1:8080` message. In a **second terminal inside the same VM**, check the endpoint:
 
 ```bash
-kubectl delete pod <pod-name>
+curl --fail --show-error --max-time 5 http://127.0.0.1:8080/health
 ```
 
-Observe:
+Expect JSON containing `"ok": true`. You are checking application health; quote retrieval and insertion are part of the database extension.
+
+`ClusterIP` is internal to the cluster. This port-forward listens on the **VM's loopback interface**, not your laptop's. To use your laptop browser, keep the VM port-forward running and open another terminal **on your laptop**:
 
 ```bash
-kubectl get pods -w
+read -r -p "VM SSH username: " vm_user
+read -r -p "VM IP address: " vm_host
+ssh -N -L 8080:127.0.0.1:8080 "$vm_user@$vm_host"
 ```
 
-Confirm:
+Use the same SSH destination and connection options you normally use to reach the course VM. Leave this tunnel running, then open [the health endpoint](http://localhost:8080/health) in your laptop browser. If using VS Code Remote SSH, you can instead forward the VM's port 8080 through its Ports panel.
 
-- A new pod is created automatically
-- The Service continues routing traffic
-- Downtime is minimal
-
----
+A port-forward to a Service selects **one Pod** and forwards directly to it. It does not demonstrate Service load balancing or readiness-based traffic selection. If that Pod disappears, restart the VM port-forward; other Ready replicas do not keep that particular forwarding session alive.
 
 ## Scale the Deployment
 
-Scale to multiple replicas:
+In `deployment.yaml`, change `replicas: 1` to `replicas: 3`. Apply the file so the saved desired state matches the cluster:
 
 ```bash
-kubectl scale deployment quote-app --replicas=3
+kubectl apply -f deployment.yaml
+kubectl rollout status deployment/quote-app --timeout=120s
+kubectl get pods -l app=quote-app -o wide
 ```
 
-Observe:
-
-```bash
-kubectl get pods
-```
-
-Confirm:
-
-- Three pods are running
-- All are Ready
+Confirm that three Pods have `READY` equal to `1/1`.
 
 Discuss:
 
 - What does scaling change?
-- What does it not change?
+- Does scaling the application also create a database or validate quote operations?
 
----
+Keep `replicas: 3` in the file for the following exercises. Reapplying a file with `replicas: 1` would undo the scaling change.
 
-## Introduce a controlled failure
+## Observe Pod replacement
+
+In one VM terminal, watch the Pods:
+
+```bash
+kubectl get pods -l app=quote-app -w
+```
+
+In another VM terminal, list the Pods and delete one. Replace `POD_NAME` below with a name from the list:
+
+```bash
+kubectl get pods -l app=quote-app
+kubectl delete pod POD_NAME
+```
+
+Observe a replacement Pod appearing with a new name and becoming Ready. The Deployment's ReplicaSet reconciles the replica count back to three. Press Ctrl+C to stop watching once the replacement is Ready.
+
+The remaining Ready Pods can remain eligible for Service traffic while the replacement starts. This exercise demonstrates reconciliation, not a guarantee of zero downtime. If the deleted Pod was selected by your port-forward, restart that command and repeat the health request.
+
+## Introduce a controlled readiness failure
 
 This step is required for grading.
 
-Modify your deployment to intentionally break readiness.
-
-Examples:
-
-- Change readinessProbe path to a non-existent endpoint
-- Use the wrong container port
-- Set an invalid image tag
-
-Apply the change and observe:
+In `deployment.yaml`, change only the readiness probe's path from `/health` to `/does-not-exist`. Keep the image, application port, and three replicas unchanged. Apply the change:
 
 ```bash
 kubectl apply -f deployment.yaml
-kubectl get pods
-kubectl describe pod <pod-name>
+kubectl rollout status deployment/quote-app --timeout=60s
+kubectl get pods -l app=quote-app
+kubectl get rs -l app=quote-app
 ```
 
-Confirm:
+The rollout command is expected to time out because the new Pods cannot become Ready. The timeout stops your wait; Kubernetes continues trying to reconcile the Deployment.
 
-- Pods fail readiness
-- Traffic is not routed
-- Kubernetes reports the failure
+Find a new Pod showing `0/1` in the `READY` column. Replace `POD_NAME` with that Pod's name and inspect it:
 
-Restore the correct configuration.
+```bash
+kubectl describe pod POD_NAME
+kubectl logs POD_NAME
+kubectl get events --sort-by=.metadata.creationTimestamp
+```
+
+Look for an `Unhealthy` event reporting a readiness probe failure with HTTP status 404. The container can be `Running` while its Pod is not Ready. A failing readiness probe does not itself restart the container.
+
+Inspect the Service's endpoint readiness:
+
+```bash
+kubectl get endpointslices -l kubernetes.io/service-name=quote-app -o yaml
+```
+
+The new unready Pods are not eligible for normal Service traffic. With the default rolling-update strategy, old healthy replicas can remain available while the rollout is stalled. The Service may therefore still work; a total outage is **not** the expected proof of this failure. Do not use a successful port-forward request as proof that the new Pods are Ready.
+
+An invalid image tag would produce a different failure (`ErrImagePull` or `ImagePullBackOff`), rather than a readiness probe failure. Use the bad probe path for this exercise so you can distinguish the two.
+
+Restore the probe path to `/health` in the file, then verify recovery:
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl rollout status deployment/quote-app --timeout=120s
+kubectl get pods -l app=quote-app
+```
+
+Confirm the rollout completes and three Pods are Ready once the rollout settles. Restart port-forwarding if needed, and repeat the `/health` request.
 
 ---
 
