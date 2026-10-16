@@ -2,6 +2,8 @@
 
 Static course site built with Astro 5. Lessons live in `src/lessons` as MDX and can render as labs or Reveal.js slide decks depending on frontmatter.
 
+This repo covers **RS507/RES507 (DevOps)** and **RS509/RES509 (Virtualisation avancée)**. Start with the [course documentation](docs/README.md) for the lesson map, agent workflow, feedback from both courses, and remaining work. Read [AGENTS.md](AGENTS.md) before editing content.
+
 ![Hero image](src/assets/hero.png)
 
 Highlights

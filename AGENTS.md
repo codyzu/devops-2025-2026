@@ -1,5 +1,11 @@
 This is an Astro 5 static course site.
 
+COURSE CONTEXT FOR AGENTS
+- This repo serves RS507/RES507 (DevOps) and RS509/RES509 (Virtualisation avancée).
+- Before changing course work, read `docs/README.md`, `docs/course-context.md`, and the relevant feedback in `docs/feedback/`.
+- Keep feedback cohorts separate. Record evidence, proposed actions, implementation status, and validation limits; implementation alone does not prove a learner concern was resolved.
+- Keep instructor context and aggregate feedback in `docs/`, outside the lesson collection. Preserve source links without copying individual student responses or grades.
+
 STACK
 - Astro 5, static output only (no server)
 - MDX enabled
