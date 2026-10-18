@@ -8,6 +8,7 @@ Start here when preparing or changing course work with an agent. The repository 
 | [Course context](course-context.md) | Lesson sequence, course boundary, environment, assessment, and publication |
 | [RS507 feedback](feedback/rs507.md) | Separate 2025–2026 and 2026–2027 surveys, cohort comparison, and action status |
 | [RS509 feedback](feedback/rs509.md) | Historical survey, implications, implementation status, and remaining work |
+| [RS509 session 2 preparation](rs509-session-2.md) | Recovery-first timing, instructor preparation, fallback, and validation limits |
 | [Session 4 audit](../session-4-audit.md) | Detailed review and implementation record from 14 October 2026 |
 
 ## Working on a lesson

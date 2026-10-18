@@ -1,291 +1,196 @@
 ---
-title: "50 Architecture: Containers, VMs, and Hypervisors"
+title: "50 Finish the Core, Understand the Architecture"
 type: slides
 slug: 50-architecture
-description: "The layers beneath Kubernetes: containers, VMs, hypervisors, and why virtualization still matters (cloud, embedded, automotive)."
-availableFrom: 2026-02-12T13:00:00+01:00
-published: false
+description: "Resume Kubernetes work, then connect persistent data to containers, VMs, and failure boundaries."
+published: true
 ---
 import {Image} from 'astro:assets';
 import hero from '../assets/hero.png';
 import Icon from '../components/Icon.astro';
 
-
 <section>
-  <Image src={hero} alt="RES507 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
-  ## <Icon name="i-tabler-stack-2" />Architecture: Containers, VMs, and Hypervisors
-  ### What runs Kubernetes (and why it matters)
+  <Image src={hero} alt="RES509 Course Hero Image" className="rounded-xl r-stretch" priority layout="constrained" />
+  ## <Icon name="i-tabler-stack-2" />Finish the Core, Understand the Architecture
+  ### RES509 — Session 2
 </section>
 
-<section>
-## <Icon name="i-tabler-flag" />Goal for this session
+<section class="title-center-body-left">
+## <Icon name="i-tabler-road" />Today’s route
 
-By the end of this deck, you should be able to answer:
+- Finish the Lab 42 core and verify it together
+- Begin PostgreSQL when your core is verified
+- Explain containers, VMs, and the kernel boundary
+- Draw the system you actually have
 
-- Where does Kubernetes sit in the stack?
-- What is the difference between containers and VMs?
-- What does a hypervisor do?
-- Why are hypervisors still used everywhere (cloud, embedded, automotive)?
+Your extension and final Lab 42 assessment can come later.
 </section>
 
-<section>
-## <Icon name="i-tabler-road" />Where we are in the course
+<section class="title-center-body-left">
+## <Icon name="i-tabler-terminal" />First: reopen your work
 
-You already know:
+Use the [Lab 42 restart checklist](/lessons/42-kubernetes-deployment-runtime-validation/#restart-checklist-).
 
-- App + database
-- Containers
-- Compose
-- CI automation
+- Reopen your VM, fork, work branch, and manifests
+- Find the first checkpoint you cannot demonstrate
+- Show the expected result and actual symptom
+- Resume from there with the troubleshooting sheet
 
-Now we zoom out:
-
-- Orchestration (Kubernetes)
-- The platform under the cluster (virtualization)
+Keep the existing cluster and your working files.
 </section>
 
-<section>
-## <Icon name="i-tabler-stack-3" />The full stack view
+<section class="title-center-body-left">
+## <Icon name="i-tabler-clock" />Our four hours
 
-Typical production stack:
-
-App → Container → Pod → Node → VM → Hypervisor → Hardware
-
-Kubernetes is not “the bottom”.
-It runs on top of an operating system.
+- 15 min: locate your checkpoint
+- 15 min: focused troubleshooting demonstration
+- 65 min: finish core work, or begin PostgreSQL
+- 15 min: break and buffer
+- 20 min: architecture discussion
+- 75 min: database work or supported recovery
+- 35 min: diagram, evidence, and next action
 </section>
 
-<section>
-## <Icon name="i-tabler-box" />Container recap
+<section class="title-center-body-left">
+## <Icon name="i-tabler-clipboard-check" />The core handoff
 
-A container is:
+Show and explain:
 
-- A process (or a set of processes)
-- Isolated using Linux kernel features
-- Packaged with a filesystem and dependencies
+- Deployment, Service, and both health access paths
+- Three Ready replicas; a deleted Pod replaced
+- Readiness HTTP 404 event, then verified recovery
+- Saved manifests and concise evidence
 
-Key idea:
-- Containers share the same kernel.
+Check in, then begin Lab 52. No extension is needed to enter.
 </section>
 
-<section>
-## <Icon name="i-tabler-shield" />Container isolation is real, but different
+<section class="title-center-body-left">
+## <Icon name="i-tabler-tools" />Use the next diagnostic signal
 
-Containers isolate:
+- Cluster unreachable: service status and kubeconfig
+- Image pull error: Pod events and k3s image store
+- Pod unready or restarting: events, then app logs
+- Service fails: labels, selector, ready endpoints
+- Laptop fails: test from the VM first
 
-- filesystem
-- process tree
-- networking
-- resource limits (CPU, memory)
-
-But they do not change this:
-
-- Same kernel for everyone
-- Kernel bugs affect everyone
+After 10 minutes without a new finding, request a check-in.
 </section>
 
-<section>
-## <Icon name="i-tabler-device-desktop" />What is a VM?
+<section class="title-center-body-left">
+## <Icon name="i-tabler-player-play" />First work block
 
-A Virtual Machine is:
+- Core unfinished: resume your missing Lab 42 checkpoint
+- Core verified: begin Lab 52’s guided PostgreSQL setup
+- Database already verified: reuse it and draw your system
 
-- A full operating system (its own kernel)
-- Running as a guest on a hypervisor
-- With virtual CPU, memory, storage, and devices
-
-Key idea:
-- VMs isolate at the kernel boundary.
+Save failure events before recovery.
+We regroup for the architecture discussion after the break.
 </section>
 
-<section>
-## <Icon name="i-tabler-scale" />Containers vs VMs (quick comparison)
+<section class="title-center-body-left">
+## <Icon name="i-tabler-stack-3" />Where does your app run?
 
-Containers:
-- fast startup
-- lightweight
-- share the host kernel
+- Your app process runs in a container, inside a Pod
+- k3s runs that workload on a node
+- Our node is your Ubuntu VM
+- The VM has a guest kernel and virtual hardware
+- A hypervisor runs the VM on host hardware
 
-VMs:
-- stronger isolation
-- different kernels possible
-- heavier, but very flexible
-
-Neither is “better”.
-They solve different problems.
+Point to those boundaries in your own setup.
 </section>
 
-<section>
-## <Icon name="i-tabler-cpu" />What is a hypervisor?
+<section class="title-center-body-left">
+## <Icon name="i-tabler-box" />Containers and VMs
 
-A hypervisor is the software layer that:
+- Containers on our node share the Ubuntu guest kernel
+- Containers isolate processes, filesystems, and networking
+- A VM runs its own guest kernel
+- The hypervisor provides virtual CPU, memory, and devices
 
-- shares hardware between VMs
-- provides virtual CPUs and devices
-- enforces isolation between guests
-- manages scheduling and memory
-
-Think: “traffic controller” for virtual machines.
+Kubernetes manages workloads; the VM boundary remains.
 </section>
 
-<section>
-## <Icon name="i-tabler-layers-intersect" />Type 1 vs Type 2 (high level)
+<section class="title-center-body-left">
+## <Icon name="i-tabler-shield" />Choose an isolation boundary
 
-Type 1 (bare metal):
-- runs directly on hardware
-- common in servers and embedded
+- Shared kernel: a kernel failure can affect many containers
+- Separate VMs: separate guest kernels, with extra overhead
+- Isolation also depends on configuration and privileges
 
-Type 2 (hosted):
-- runs as an app on a host OS
-- common on laptops (VirtualBox)
-
-We care mostly about Type 1 in production.
+Discuss: why might cloud tenants need separate guest kernels?
 </section>
 
-<section>
-## <Icon name="i-tabler-brand-docker" />Where Kubernetes nodes usually run
+<section class="title-center-body-left">
+## <Icon name="i-tabler-refresh" />Which failure did you test?
 
-In most clouds:
+- Deleted app Pod: its ReplicaSet creates a replacement
+- Bad readiness path: new Pod stays unready
+- Old healthy Pods may still serve during that stalled rollout
+- Lost VM: all three local app replicas are unavailable
 
-- Each Kubernetes node is a VM
-- Your Pods run inside containers
-- Those containers run on a kernel inside that VM
-
-So the isolation boundary is often:
-
-Pod → container → VM → hypervisor → hardware
+Three replicas on one VM do not provide node resilience.
 </section>
 
-<section>
-## <Icon name="i-tabler-cloud" />Why cloud providers love VMs
+<section class="title-center-body-left">
+## <Icon name="i-tabler-database" />The next practical milestone
 
-VMs make cloud operations easier:
+Follow Lab 52’s guided setup:
 
-- strong tenant isolation
-- per-customer quotas and limits
-- live migration and maintenance workflows
-- predictable billing units
+- PostgreSQL, its Service, and persistent storage
+- Secret references for the app’s database connection
+- Insert and retrieve a distinct quote through the app
+- Replace the database Pod, keeping its PVC
+- Retrieve that same quote again
 
-Even when you use containers, the cloud is still virtualized.
+A successful `/health` request does not test these operations.
 </section>
 
-<section>
-## <Icon name="i-tabler-car" />Why virtualization matters in automotive
+<section class="title-center-body-left">
+## <Icon name="i-tabler-device-desktop" />What did persistence prove?
 
-In automotive systems you often need:
+- The quote survives database Pod replacement
+- The PVC uses storage on this VM
+- Database replacement can interrupt service
+- VM or disk loss needs a separate recovery design
 
-- mixed-criticality workloads
-- isolation between safety and non-safety domains
-- secure separation of supplier components
-- predictable scheduling and resource control
-
-A hypervisor lets multiple OSes share one SoC safely.
+Persistence across Pod replacement is a specific result.
+It does not demonstrate backups or high availability.
 </section>
 
-<section>
-## <Icon name="i-tabler-cpu" />Embedded and edge
+<section class="title-center-body-left">
+## <Icon name="i-tabler-pencil" />Draw what you actually have
 
-At the edge, virtualization helps when you need:
+Include access paths and boundaries:
 
-- multiple workloads on limited hardware
-- OTA updates without bricking the system
-- isolation between apps from different teams
-- long-lived systems with strict stability needs
+- Access: browser, port-forward, and in-cluster client
+- App: Service, Pods, and containers
+- Database: Service, Pod, and PVC if implemented
+- Platform: Ubuntu VM/kernel, hypervisor, hardware
 
-It is not only a data center story.
+Mark planned components. Distinguish traffic from containment.
 </section>
 
-<section>
-## <Icon name="i-tabler-lock" />Security view: isolation boundaries
+<section class="title-center-body-left">
+## <Icon name="i-tabler-clipboard-check" />Before leaving
 
-When you choose an isolation boundary, ask:
+- Save the last verified checkpoint and selected evidence
+- Link your diagram; add brief kernel and storage notes
+- Commit working files and push your own fork
+- Agree one next action with the instructor
 
-- what can escape?
-- what is the blast radius?
-- who controls the kernel?
-
-Typical boundaries (weak → strong):
-
-process → container → VM → hardware partition
+If still blocked, record the symptom and next diagnostic check.
+A class demonstration does not complete your individual work.
 </section>
 
-<section>
-## <Icon name="i-tabler-bolt" />Performance view
+<section class="title-center-body-left">
+## <Icon name="i-tabler-player-play" />Continue from your checkpoint
 
-Virtualization used to be “slow”.
-Modern hardware support changed that.
+Open [52 — From Kubernetes Recovery to Persistent Data](/lessons/52-architecture-production-design/).
 
-Today, virtualization is often:
+- Finish core recovery first if needed
+- Verify database work, then the diagram
+- Afterward, choose one continuation if time permits
 
-- close to native performance
-- predictable and measurable
-- good enough for production at scale
-
-The tradeoff is mostly operational, not raw speed.
-</section>
-
-<section>
-## <Icon name="i-tabler-arrow-guide" />Where this connects to our labs
-
-In our labs, you will notice:
-
-- your cluster is “somewhere”
-- it has nodes
-- nodes have CPU and memory constraints
-- failures happen at different layers
-
-Good debugging starts by asking:
-“What layer am I in right now?”
-</section>
-
-<section>
-## <Icon name="i-tabler-eye" />Observability by layer
-
-When something fails, pick the layer:
-
-- App logs (inside container)
-- Pod / Deployment status (Kubernetes)
-- Node resources (CPU, memory pressure)
-- VM / host limits (virtualization)
-- Physical hardware / network
-
-The symptom shows up at one layer.
-The cause may be below it.
-</section>
-
-<section>
-## <Icon name="i-tabler-brain" />Mini discussion
-
-Pick one:
-
-- When would you choose a VM over a container?
-- What is one risk containers do not solve?
-- Why might an automotive platform choose a hypervisor?
-
-We want reasoning, not buzzwords.
-</section>
-
-<section>
-## <Icon name="i-tabler-checklist" />What I care about today
-
-I am not grading “hypervisor facts”.
-
-I care that you can:
-
-- place each technology in the stack
-- explain why it exists
-- name the tradeoff it makes
-- identify what it does not solve
-</section>
-
-<section>
-## <Icon name="i-tabler-player-play" />Back to the lab
-
-Next, we will:
-
-- deploy to Kubernetes
-- break things
-- debug with get / describe / logs
-
-Keep the stack in mind.
-It will make debugging easier.
+Later: controlled changes and production architecture.
+We will confirm the remaining scope after today’s check-ins.
 </section>

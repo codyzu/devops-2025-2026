@@ -50,6 +50,127 @@ Save the failure output **before fixing it**; the failed Pod and its events may 
 
 ---
 
+## Restart checklist \{.no-step\}
+
+Returning for **RS509 session 2**? Reopen your existing VM, fork, and manifests. Start at the first checkpoint you cannot demonstrate. Keep working files and the existing cluster; you do not need to reinstall k3s or start the lab again.
+
+Before class, have your VM and repository accessible and identify your last successful checkpoint. Bring the exact error if blocked; you are not expected to solve every blocker before class.
+
+Run these checks **inside your Ubuntu VM**, from your own course repository:
+
+```bash
+git status
+git branch --show-current
+kubectl get nodes -o wide
+kubectl -n quote-lab get deployments,pods,services
+```
+
+Expect your existing work branch, a Ready node, and the resources you previously created. `NotFound` for `quote-lab` means you have not reached the namespace checkpoint yet. If the API is unreachable, use the troubleshooting sheet below before running more Kubernetes commands. Preserve uncommitted work before switching branches.
+
+- [ ] Locate your completed application in `labs/20-containerized-node-app` and any manifests in `labs/42-kubernetes`.
+- [ ] Identify your first missing result in the progress table above.
+- [ ] Show your instructor that checkpoint, its expected result, and the actual symptom.
+- [ ] Resume from the corresponding lab section; save failure events before fixing the problem.
+
+### Ready to move forward? \{.no-step\}
+
+Ask for a short instructor check-in when you can show:
+
+- Your Deployment and Service, plus successful `/health` requests through port-forwarding and the in-cluster Service.
+- Three Ready app replicas matching the saved manifest, and evidence of a deleted Pod being replaced.
+- The deliberate readiness failure, its HTTP 404 event, and a recovered rollout with `/health` restored.
+- Your working manifests and concise evidence saved in `labs/42-kubernetes`.
+
+Explain one observation in your own words. These checks establish the **core handoff** to Lab 52. An extension is not required to move forward; one verified extension remains part of the later Lab 42 assessment. Once the instructor releases Lab 52, begin its guided PostgreSQL section. If you already verified the database extension, reuse it.
+
+## Troubleshooting sheet \{.no-step\}
+
+Choose the symptom you actually see. Run the checks below **inside the VM**. Replace `POD_NAME` with a real Pod name. After the API works, use the explicit `quote-lab` namespace so an old terminal context does not hide your resources.
+
+### Cluster access or missing resources \{.no-step\}
+
+```bash
+sudo systemctl status k3s --no-pager
+sudo journalctl -u k3s -n 50 --no-pager
+kubectl config current-context
+kubectl config view --minify -o jsonpath='{..namespace}'
+kubectl get namespaces
+```
+
+**Expected:** k3s is active, your kubeconfig reaches the course cluster, and `quote-lab` exists once you have created it. A blank namespace means the default namespace, not missing workloads.
+
+For permission errors, check the home-directory kubeconfig instructions in “Verify your environment”. For `NotFound`, confirm the namespace and whether you created that resource. If the service is failed or the node stays unready, show the service logs to the instructor. Reinstalling k3s is not the recovery step.
+
+### Image cannot be pulled \{.no-step\}
+
+```bash
+kubectl -n quote-lab get pods
+kubectl -n quote-lab describe pod POD_NAME
+sudo k3s ctr images list | grep 'quote-app'
+```
+
+**Expected:** the Deployment's image tag exists in k3s's image store. The baseline tag is `docker.io/library/quote-app:local`; keep your newer tag if you deliberately built and imported one.
+
+For `ErrImagePull` or `ImagePullBackOff`, compare the exact image name in events with the imported tag. Return to “Build and import your image for Kubernetes” on this same VM. After correcting the import, delete only the failing app Pod and verify its replacement. If app code changed, build/import a new tag and update the saved manifest. A Docker image listing alone does not verify the k3s import.
+
+### Pod is Pending, restarting, or not Ready \{.no-step\}
+
+```bash
+kubectl -n quote-lab get pods -l app=quote-app -o wide
+kubectl -n quote-lab describe pod POD_NAME
+kubectl -n quote-lab logs POD_NAME
+kubectl -n quote-lab get events --sort-by=.metadata.creationTimestamp
+```
+
+**Expected:** each settled app Pod shows `1/1` Ready. Events identify scheduling, configuration, or probe problems; logs show application errors. For a restarting container, also inspect its previous instance:
+
+```bash
+kubectl -n quote-lab logs POD_NAME --previous
+```
+
+Use `--previous` only when a previous container instance exists. For `Pending`, inspect scheduling events and VM capacity. For app crashes, check the startup error and configuration. A `Running` Pod with `0/1` and readiness HTTP 404 is the intended bad-probe symptom: save its event, restore `/health` in the manifest, apply, and wait for recovery. Keep the readiness probe.
+
+### Service or health request fails \{.no-step\}
+
+```bash
+kubectl -n quote-lab get svc quote-app -o yaml
+kubectl -n quote-lab get pods -l app=quote-app --show-labels
+kubectl -n quote-lab get endpointslices -l kubernetes.io/service-name=quote-app -o yaml
+kubectl -n quote-lab get pod service-check
+```
+
+**Expected:** the Service selector matches `app: quote-app`, Service port 80 targets application port 3000, and settled healthy Pods have ready endpoints. Reuse the Ready `service-check` client from “Verify the in-cluster Service path”, or create it there if missing. Then check:
+
+```bash
+kubectl -n quote-lab exec service-check -- wget -qO- http://quote-app/health
+```
+
+Expect JSON containing `"ok": true`. If the client image cannot download, inspect its events first. If the app Pod is Ready but the Service has no ready endpoints, compare selectors and labels. Port-forward success alone does not verify this Service path.
+
+### VM access works but laptop access fails \{.no-step\}
+
+Restart this command in a VM terminal and leave it running:
+
+```bash
+kubectl -n quote-lab port-forward svc/quote-app 8080:80
+```
+
+In a second **VM terminal**, check:
+
+```bash
+curl --fail --show-error --max-time 5 http://127.0.0.1:8080/health
+```
+
+**Expected:** `"ok": true` inside the VM. Your laptop's localhost is a different machine. Use the SSH tunnel or VS Code Ports instructions in “Access the health endpoint” for laptop access. If the selected Pod was replaced, restart the VM port-forward. If port 8080 is already in use, check for an existing forward before starting another.
+
+### Health works but the quote page fails \{.no-step\}
+
+**Expected for the Lab 42 baseline:** `/health` can work before PostgreSQL is configured. Quote retrieval and insertion require the app's database handlers, `DATABASE_URL`, and an initialized database. Finish the Lab 42 core, then use Lab 52's guided database setup when released. A successful health check does not prove database functionality.
+
+If you spend **10 minutes without a new diagnostic finding**, request a check-in. Show the command, expected result, actual result, and the latest relevant event or log excerpt. Keep credentials out of shared output.
+
+---
+
 ## Verify your environment
 
 Your goal is to end up with a working Kubernetes cluster and `kubectl` access. Whenever a command contains `POD_NAME`, replace it with an actual name from `kubectl get pods`; do not paste the placeholder literally.

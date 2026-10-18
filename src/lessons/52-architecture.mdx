@@ -1,79 +1,72 @@
 ---
-title: "52 Architecture, Virtualization, and Production Design"
+title: "52 From Kubernetes Recovery to Persistent Data"
 slug: "52-architecture-production-design"
-description: "Design and analyze a production-ready architecture using containers, Kubernetes, and virtualization concepts."
+description: "Finish the Kubernetes core, connect PostgreSQL, verify persistence, and map containers and VMs."
 type: lab
-availableFrom: 2026-02-12T13:00:00+01:00
-published: false
+published: true
 ---
 {/*
 - This lab feels a bit to heavy on the questions and a bit too LLM-like. Revise it to be more structured and less on-and-on...
 - Make all questions h3 level. That's how 62 works and it's nice.
+Session 2 revision: guided checkpoints, one current-system diagram, short evidence, and oral prompts.
+Production design remains with Lab 62; optional resource/probe work reuses Lab 42 lanes.
 */}
-## Introduction \{.no-step\}
+## Today’s route \{.no-step\}
 
-**RES509 — Day 2 (session 5 overall).** In this lab, you will step back from implementation details and think like a systems designer.
+**RES509 — Session 2 (session 5 overall).** Finish the Kubernetes core, connect your app to persistent storage, and explain the layers underneath it.
 
-You will:
+Start with the [Lab 42 restart checklist](/lessons/42-kubernetes-deployment-runtime-validation/#restart-checklist-). If you are blocked, use its [troubleshooting sheet](/lessons/42-kubernetes-deployment-runtime-validation/#troubleshooting-sheet-) and show your first missing checkpoint at the opening check-in.
 
-- Analyze application architecture
-- Compare containers and virtual machines
-- Design a production-ready deployment
-- Introduce scaling, resilience, and failure thinking
-- Connect Kubernetes to real-world infrastructure
+| Your current checkpoint | Your next action |
+| --- | --- |
+| Cluster, image, deployment, or access is not working | Resume that section of Lab 42 with instructor support. |
+| App is accessible, but scaling or readiness failure/recovery is unfinished | Finish those Lab 42 core checks and save the evidence. |
+| Lab 42 core is verified | Begin the guided PostgreSQL setup below. No extension is required to enter this lab. |
+| Database extension already works | Reuse it; verify quote insertion and persistence, then map the architecture. |
 
-First establish a working database-backed app using the guided setup below. Then map its architecture and investigate isolation and failure. Reuse verified Lab 42 extensions. Discuss reasoning questions with your partner and instructor; record concise decisions and evidence rather than an answer to every prompt.
+Keep your own fork and existing work. A partner may help diagnose a problem, but demonstrate the result on your own VM. The Lab 42 extension remains part of its later assessment; the database work here can satisfy that lane when its verification is complete.
 
----
+### Our four hours \{.no-step\}
 
-## Submission checklist \{.no-step\}
-<div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 my-4">
+| Time from start | Activity |
+| --- | --- |
+| 0–15 min | Reopen your work and identify your first missing checkpoint. |
+| 15–30 min | Focused demonstration of a common blocker and the next diagnostic check. |
+| 30–95 min | Finish Lab 42 core; students with verified core work begin PostgreSQL. |
+| 95–110 min | Break and buffer. |
+| 110–130 min | Architecture discussion with lesson 50: Pods, containers, VMs, and failure boundaries. |
+| 130–205 min | Guided database work, or continued supported Lab 42 recovery. |
+| 205–225 min | Verify results and draw the current architecture. |
+| 225–240 min | Save evidence, commit working files, and agree your next action. |
 
-🚨 **Read this section before continuing.**  
-This clarifies how Lab 52 will be graded.
+These are work blocks, not a deadline to complete every task. Join the architecture discussion at your current checkpoint. If the class needs more recovery time, the instructor will demonstrate database persistence; record it as observed, with your own database work still pending. A demonstration is not individual completion evidence.
 
-Your repository must contain:
+### Session evidence and stopping points \{.no-step\}
 
-- [ ] A file named `architecture-notes.md`
-- [ ] A short decision summary: isolation boundaries, one failure and recovery, and the main tradeoff in your proposed design
-- [ ] Evidence of quote insertion and persistence across database Pod replacement
-- [ ] A production architecture design section
-- [ ] An architecture diagram (PNG, Draw.io export, or image file)
-- [ ] The diagram embedded in or clearly linked from `architecture-notes.md`
-- [ ] Updated Kubernetes manifests with:
-  - [ ] Resource requests and limits
-  - [ ] Readiness and liveness probes
-  - [ ] Secret references for database configuration (no credentials committed)
-- [ ] Evidence of at least one controlled failure and analysis
+Keep the evidence small. Your target after verifying the Lab 42 core is:
 
-Everything must be committed and pushed to GitHub.
+- [ ] PostgreSQL has a Bound PVC and a Ready Pod; manifests reference a Secret without committing its values.
+- [ ] A distinct quote inserted through your app is still retrievable after database Pod replacement using the same PVC.
+- [ ] A diagram of your **actual** setup is linked or embedded in `labs/52-architecture/architecture-notes.md`.
+- [ ] Three brief notes explain the shared kernel, persistence boundary, and next unresolved task or main limitation.
+- [ ] Working manifests and selected evidence are committed and pushed in your own fork.
 
-Keep implementation and short evidence in your repository; explain conceptual reasoning during the oral review.
-</div>
+Keep Lab 42 failure/recovery evidence where it is and link to it. You do not need a second readiness failure, a five-row comparison table, or a production design report today. Resource limits, liveness experiments, and production rollouts are later work or optional extensions after today's checks. Final production architecture design belongs with Lab 62.
 
----
+If you finish only part of this route, save the last successful result, the blocker, and one next action. Agree the next checkpoint with the instructor before leaving; do not label unfinished work complete.
 
-## Review your current deployment
+## Verify your handoff
 
-Before designing something larger, verify your current Kubernetes setup.
+Show the instructor the core handoff listed in Lab 42's restart checklist: both health paths, three Ready replicas, Pod replacement, and readiness failure/recovery with saved manifests and evidence. Explain one observation. Move forward after that check-in; an extension is not an entry requirement.
 
-Replace `POD_NAME` in later commands with a name from the Pod list. Run:
+Run all commands below **inside your course Ubuntu VM**, from your own fork. Replace `POD_NAME` in diagnostic commands with an actual Pod name. Select the lab namespace:
 
 ```bash
-kubectl get pods
-kubectl get services
-kubectl get deployments
+kubectl config set-context --current --namespace=quote-lab
+kubectl get deployments,pods,services
 ```
 
-Confirm:
-
-- Your quote application is running
-- The `/health` endpoint responds; a database is not yet required at this checkpoint
-- You can port-forward successfully
-
-If something is broken, fix it now.
-
-You will build on this foundation. If you have not integrated PostgreSQL yet, complete the next guided section before mapping the full application.
+Reopen your port-forward and verify `/health` as in Lab 42. If a previously working deployment has broken, return to its troubleshooting sheet before adding database configuration.
 
 ---
 
@@ -258,7 +251,7 @@ curl --fail --show-error --max-time 10 http://127.0.0.1:8080/ -o /tmp/res509-quo
 grep -F "$quote_marker" /tmp/res509-quotes.html
 ```
 
-Expect the marker in the returned page. If not, check that your Session 2 SELECT and INSERT handlers are implemented, inspect app logs, and verify the connection and table initialization. A passing `/health` is insufficient.
+Expect the marker in the returned page. If not, check that your RS507 containerized-app SELECT and INSERT handlers are implemented, inspect app logs, and verify the connection and table initialization. A passing `/health` is insufficient.
 
 Replace the database Pod while keeping its PVC:
 
@@ -277,522 +270,52 @@ Expect a new database Pod and the same quote. Keep the marker value in this term
 
 ## Map the current architecture
 
-Create a simple architecture diagram on paper or digitally.
-
-Your diagram must include:
-
-- User / browser
-- Kubernetes cluster
-- Deployment
-- Pod
-- Service
-- PostgreSQL database
-
-Discuss, then note the main design decision:
-
-- Where does isolation happen?
-- What restarts automatically?
-- What does Kubernetes *not* manage?
-
-Be prepared to explain your diagram.
-
----
-
-## Compare containers and virtual machines
-
-Create a comparison table with at least five differences.
-
-Topics to consider:
-
-- Kernel sharing
-- Startup time
-- Resource overhead
-- Security isolation
-- Operational complexity
-
-Then answer:
-
-- When would you prefer a VM over a container?
-- When would you combine both?
-
-Keep the comparison table in `architecture-notes.md` with one sentence explaining when you would combine VMs and containers. Discuss the remaining questions orally.
-
----
-
-## Introduce horizontal scaling
-
-Reuse the three replicas from Lab 42. If needed, set `replicas: 3` in the saved app manifest and apply it. Verify the saved desired state and live state agree; do not scale PostgreSQL this way.
-
-Verify:
-
-```bash
-kubectl get pods
-```
-
-You should see multiple replicas.
-
-Now test behavior:
-
-- Port-forward the service
-- Retrieve a quote inserted through the application
-
-A Service port-forward selects one Pod, so refreshing it does not test load balancing. Use an in-cluster client as in Lab 42 to test the Service path.
-
-Answer:
-
-- What changes when you scale?
-- What does not change?
-
----
-
-## Simulate failure
-
-Delete one running pod.
-
-```bash
-kubectl delete pod POD_NAME
-```
-
-Immediately observe:
-
-```bash
-kubectl get pods
-```
-
-Answer:
-
-- Who recreated the pod?
-- Why?
-- What would happen if the node itself failed?
-
-Discuss the questions orally; save only the failure observation and recovery evidence.
-
----
-
-## Introduce resource limits
-
-Edit your deployment and add resource constraints.
-
-Add under the container spec:
-
-```yaml
-resources:
-  requests:
-    cpu: "100m"
-    memory: "128Mi"
-  limits:
-    cpu: "250m"
-    memory: "256Mi"
-```
-
-Apply the updated manifest.
-
-Observe:
-
-```bash
-kubectl describe pod POD_NAME
-```
-
-Answer:
-
-- What are requests vs limits?
-- Why are they important in multi-tenant systems?
-
----
-
-## Add readiness and liveness probes
-
-Enhance your deployment with health checks.
-
-Example:
-
-```yaml
-livenessProbe:
-  httpGet:
-    path: /health
-    port: 3000
-  initialDelaySeconds: 5
-  periodSeconds: 10
-
-readinessProbe:
-  httpGet:
-    path: /health
-    port: 3000
-  initialDelaySeconds: 5
-  periodSeconds: 5
-```
-
-Keep probes from your Lab 42 extension if they already meet this configuration. `/health` is deliberately independent of PostgreSQL; a database outage should not trigger an app restart loop. Verify database-backed operations separately.
-
-Change only the liveness path to `/does-not-exist`, observe restart counts and events, then restore `/health`. Reuse existing evidence if you already demonstrated this in Lab 42.
-
-Answer:
-
-- What is the difference between readiness and liveness?
-- Why does this matter in production?
-
----
-
-## Connect Kubernetes to virtualization \{.no-step\}
-
-Discuss:
-
-- What runs underneath your k3s cluster?
-- Is Kubernetes replacing virtualization?
-- In a cloud provider, what actually hosts your nodes?
-
-Explain how this stack might look in:
-
-- A cloud data center
-- An embedded automotive system
-- A financial institution
-
-Add one sentence about the isolation boundary you chose to `architecture-notes.md`.
-
----
-
-## Design a production architecture
-
-Create a new section in `architecture-notes.md`.
-
-Design a production-ready version of this system.
+Create `labs/52-architecture/architecture-notes.md` in your fork. Draw your current system on paper or digitally; add a photo or image and link or embed it in that file.
 
 Include:
 
-- Multiple nodes
-- Database persistence
-- Backup strategy
-- Monitoring
-- Logging
-- CI/CD pipeline integration
+- Browser, laptop-to-VM access, and the temporary port-forward.
+- App Service, app Deployment, and its Pods and containers.
+- Database Service, PostgreSQL Pod, and PVC when implemented.
+- The Ubuntu VM as the Kubernetes node, its guest kernel, the hypervisor, and host hardware.
 
-Answer clearly:
+Distinguish traffic paths from “runs inside” boundaries. A port-forward to the app Service selects one Pod; it does not demonstrate Service load balancing. Add the in-cluster client path you verified in Lab 42 separately. Mark PostgreSQL as **planned** if you have not deployed it; label any instructor demonstration as observed.
 
-- What would run in Kubernetes?
-- What would run in VMs?
-- What would run outside the cluster?
+### Which kernel do your containers share?
 
-This is a graded reasoning exercise.
+Discuss with a partner: app and database containers on this node share the Ubuntu VM's kernel. The hypervisor provides the VM boundary; Kubernetes manages workloads inside it. Add one sentence explaining that boundary to your notes.
 
----
+### What survives replacement, and what survives VM loss?
 
-## Required break and analysis
+Use your Lab 42 Pod replacement and the database persistence observation. Explain why an app Pod can be replaced, why the quote survives database Pod replacement with its PVC, and why three replicas plus local-path storage on one VM do not provide recovery from VM or disk loss.
 
-Introduce a controlled failure in your deployment.
+Add one sentence about that storage/failure boundary. Keep production backup and multi-node design as future work, rather than claiming your teaching cluster already provides them.
 
-Examples:
+## Save concise evidence and your next action
 
-- Set an invalid image name
-- Remove environment variables
-- Misconfigure resource limits
+In `architecture-notes.md`, keep:
 
-Apply and observe the failure.
+- A link to your existing Lab 42 verification evidence.
+- The database check results: Bound PVC, old/new database Pod names, and the quote marker retrieved before and after replacement. If incomplete, record the last successful checkpoint and actual blocker instead.
+- Your diagram and the two short boundary notes above.
+- One next action, or your main remaining limitation if today's checks pass.
 
-Capture:
+Keep database manifests and the initialization ConfigMap in `labs/52-architecture`; keep the updated app manifest in `labs/42-kubernetes`. Commit Secret **references**, never Secret exports, kubeconfig, or passwords. Secret base64 encoding is not encryption.
 
-```bash
-kubectl describe pod POD_NAME
-kubectl get events
-```
+Review the selected files and Git diff before committing and pushing. Explain the results orally; you do not need an answer to every discussion prompt.
 
-Then fix the issue.
+### Check out with the instructor
 
-You must show at least one failed state in the Kubernetes events.
+Show what works on your VM, identify anything still pending, and agree your next checkpoint. If the database worked already, reuse that verification for Lab 42's database extension; link to the same evidence rather than producing a second report.
 
----
+## Continue when ready \{.no-step\}
 
-## Verify Secret-based configuration
+After today's database and diagram checks, choose **one** continuation if time permits:
 
-The guided database setup already uses a Secret. If you reused a Lab 42 database, ensure its database credentials and the app's `DATABASE_URL` come from Secret references too. Do not create a second, unrelated set of credentials.
+- Verify or complete Lab 42's **resource management** lane. Show requests/limits in the saved manifest and live Pod configuration.
+- Verify or complete its **liveness probe** lane. Show restart counts and events for the deliberately bad liveness path, then restore `/health` and verify recovery. Keep database availability out of this health endpoint.
+- If those are already verified, annotate your diagram with one single point of failure and discuss a possible improvement and its tradeoff.
 
-Inspect your saved manifests and verify quote insertion and retrieval again. Do not print or commit Secret values. A Secret's base64 representation is not encryption; access control and encryption at rest depend on cluster configuration. Refer to the [Kubernetes Secret guidance](https://kubernetes.io/docs/concepts/configuration/secret/) when explaining your deployment's protections.
+Reuse completed extensions. You do not have to complete every lane. Follow the detailed instructions in [Lab 42](/lessons/42-kubernetes-deployment-runtime-validation/); no new extension requirement is added here.
 
-Discuss why Secret references are useful and what they do not protect. Keep one sentence about this tradeoff in your decision summary.
-
----
-
-## Continue in RES509 Day 3: Controlled rollouts and safe rollback \{.no-step\}
-
-<div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 my-4">
-
-Continue this section with lesson 60 on RES509 Day 3. Start early only after the Day 2 database, architecture, and probe work is verified. The rollout extension below belongs to that later work.
-
-**What you will practice:**
-- Make a controlled change
-- Observe the rollout
-- Intentionally break it once
-- Roll back safely
-- Document what you learned
-
-</div>
-
-## Perform a controlled rollout
-
-Plan one small, safe change, but build the baseline `v1` in the next section **before editing**. For example:
-- Change the page title in the template
-- Add a new route that returns a short message
-- Add a tiny log line
-
-After building `v1`, make and commit the change, then build `v2`.
-
-## Build and publish a versioned image \{.no-step\}
-
-You need two image versions to demonstrate a rollout.
-
-If you already have a workflow from the previous course, you can reuse it.
-
-Otherwise, keep it simple and build locally. First return to the application directory:
-
-```bash
-cd "$(git rev-parse --show-toplevel)/labs/20-containerized-node-app"
-```
-
-- Build a versioned image tag:
-```bash
-docker build -t quote-app:v1 -f docker/Dockerfile .
-```
-
-- Make your code change, then build a second version:
-```bash
-docker build -t quote-app:v2 -f docker/Dockerfile .
-```
-
-Build from `labs/20-containerized-node-app` in the VM. With the course k3s/containerd setup, import both tags before deploying or rolling back; Docker images are not automatically available to k3s.
-
-Example (local, no registry):
-```bash
-docker save quote-app:v1 quote-app:v2 -o /tmp/quote-app-versions.tar
-sudo k3s ctr images import /tmp/quote-app-versions.tar
-```
-
-## Update the Deployment to the new image
-
-Update the Deployment image to `quote-app:v2`.
-
-If you used a registry image name in your manifests, keep using that same pattern.
-
-Apply your manifest update, then observe the rollout.
-
-## Observe rollout progress
-
-Run:
-
-```bash
-kubectl rollout status deployment quote-app
-kubectl rollout history deployment quote-app
-kubectl get pods -o wide
-```
-
-Answer in `architecture-notes.md`:
-
-- What changed in the cluster during the rollout?
-- What stayed the same?
-- How did Kubernetes decide when to create and delete Pods?
-
-## Require one broken rollout
-
-Introduce a controlled failure so the rollout does not complete.
-
-Examples:
-- Set the image to a tag that does not exist
-- Set the readiness probe port to a port where the app is not listening
-- Break your readiness probe path
-
-Apply the change and confirm you can see evidence of failure:
-
-```bash
-kubectl get pods
-kubectl describe pod POD_NAME
-kubectl get events
-```
-
-In `architecture-notes.md`, write:
-- What failed first?
-- Which signal showed you the failure fastest?
-- What would you check next if this happened in production?
-
-## Roll back safely
-
-Undo the broken rollout:
-
-```bash
-kubectl rollout undo deployment quote-app
-kubectl rollout status deployment/quote-app --timeout=120s
-```
-
-Restore the saved manifest to the recovered image and probe configuration, then apply it and verify again. Rollback changes the cluster, not your Git files.
-
-Verify:
-- The application becomes healthy again
-- The Deployment stabilizes
-- Pods return to a ready state
-
-Add a short note in `architecture-notes.md`:
-- What did rollback change?
-- What did rollback not change?
-
-## Required extension choice
-
-Choose ONE of these extensions and implement it.
-
-### Option A: Explicit rollout strategy
-
-Update your Deployment to explicitly define a rolling update strategy:
-
-```yaml
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxSurge: 1
-    maxUnavailable: 0
-```
-
-Explain in `architecture-notes.md`:
-- What does `maxSurge` do?
-- What does `maxUnavailable` do?
-- Why might you choose `0` for `maxUnavailable`?
-
-### Option B: Rollout notes and evidence
-
-Add a short “Rollout Evidence” section to `architecture-notes.md` that includes:
-- The commands you ran (`rollout status`, `history`, `undo`)
-- One or two short excerpts of output (keep it short)
-- Your interpretation of what happened
-
-### Option C: Canary-style rollout (manual)
-
-Simulate a “canary” rollout manually:
-- Temporarily run 1 replica of `v2` and 2 replicas of `v1`
-- Compare behavior
-- Then complete the rollout
-
-Document the approach and limitations in `architecture-notes.md`.
-
-## Optional stretch: real end-to-end checks \{.no-step\}
-
-In real projects, teams often add end-to-end checks (for example with Playwright) to validate an application through the browser.
-
-You do not need to implement this here, but write 3–5 bullets in `architecture-notes.md` explaining:
-- What an end-to-end test would validate for this app
-- Where it should run (locally, CI, or both)
-- What the biggest cost or risk would be
-
----
-
-## Optional extension lanes \{.no-step\}
-
-The following lanes are optional unless specified by your instructor.
-
-Choose one or more depending on your pace.
-
-<details>
-<summary>Multi-node simulation</summary>
-
-If your environment supports it:
-
-- Add an additional worker node
-- Observe pod scheduling behavior
-- Run:
-
-```bash
-kubectl get nodes
-kubectl get pods -o wide
-```
-
-Document:
-
-- How pods are distributed
-- How Kubernetes chooses nodes
-- What happens when a node becomes unavailable
-
-</details>
-
-<details>
-<summary>Database hardening</summary>
-
-Improve the security posture of your database deployment:
-
-- Ensure credentials come from a Kubernetes Secret
-- Avoid plain-text passwords in manifests
-- Verify environment variables are injected correctly
-
-Explain:
-
-- Why Secrets are preferable to ConfigMaps for credentials
-- Where Secret data is stored in the cluster
-
-</details>
-
-<details>
-<summary>Autoscaling exploration</summary>
-
-Research Horizontal Pod Autoscaler (HPA).
-
-Document:
-
-- What metrics are required
-- Why metrics-server is needed
-- How autoscaling differs from manual scaling
-- What would be required in a real production cluster
-
-Implementation is optional unless you complete all required tasks early.
-
-</details>
-
-<details>
-<summary>Architecture critique</summary>
-
-Write a short critique of your own design.
-
-Include:
-
-- Single points of failure
-- Operational risks
-- Security concerns
-- Observability gaps
-
-Be precise and realistic.
-
-</details>
-
-<details>
-<summary>🐉 Beast Mode: production realism challenge</summary>
-
-Attempt this only after completing all required work.
-
-Choose ONE of the following:
-
-- Add a NetworkPolicy that restricts which pods can talk to the database.
-- Split application and database into separate namespaces and update access rules.
-- Add a basic Ingress resource and explain how it connects to a real load balancer.
-- Simulate a rolling update and observe rollout history.
-
-For your chosen challenge:
-
-- Implement it as far as your environment allows.
-- Document what worked and what did not.
-- Explain what would change in a real multi-node production cluster.
-
-Add a dedicated section in `architecture-notes.md` titled:
-
-```text
-Beast Mode Challenge
-```
-
-</details>
-
----
-
-## Wrap-up reflection \{.no-step\}
-
-Before leaving, ensure:
-
-- Your manifests are committed
-- `architecture-notes.md` is pushed
-- You can explain your design verbally
-
-This session is about thinking like an engineer responsible for production systems.
-
-Speed is not the goal.
-
-Clarity and reasoning are.
+Controlled version changes and rollback continue with lesson 60 when released. The larger production architecture challenge belongs to Lab 62. The instructor will confirm the remaining scope after today's check-ins; deferred activities are not an additional end-of-session checklist.
