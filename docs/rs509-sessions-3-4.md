@@ -4,7 +4,7 @@ Prepared 16 November 2026 for 2026–2027. Session 3 is on 17 November; session 
 
 ## Evidence and limits
 
-- Instructor decision: finish Lab 52 in session 3; reserve Lab 62 for session 4. The instructor has no prepared rollout demonstration; revisit that separately rather than depending on it for delivery.
+- Instructor decision: finish Lab 52 in session 3; reserve Lab 62 for session 4. The instructor has no rehearsed rollout environment. The optional [demo guide](rs509-rollout-demo.md) reuses a working Lab 42 app; use the slide discussion if its baseline is unavailable.
 - Current-year [assessment source](https://docs.google.com/spreadsheets/d/16VwDhgWoH5dUIq6UDpU67ybxEvTYngf61jtuHfdLflI/edit), reviewed 16 November 2026: `lab-42!A1:O35` and `lab-52!A1:O35`, with 23 learner rows. Lab 52 component scores are blank throughout, with one positive completion note. This supports the instructor’s recollection of one completion, not a verified count of technical failures. Lab 42 includes both partial scoring and positive notes on unscored rows. A zero total beside blank component scores is not sufficient evidence of failure or incompletion.
 - Historical 2025–2026 [assessment source](https://docs.google.com/spreadsheets/d/1mBvFCY7wHHJOL-NYmAHcn5C52SwVoTrZ4pPHU5xNQyA/edit), reviewed 16 November 2026: `509-S1!A1:AC32`, `509-S2!A1:AG32`, `509-S3!A1:L32`, `509-S4!A1:K32`, and `'509 Final Grade'!A1:I32`. S1/S3/S4 each contain 19 recorded assessment totals; S2 has blank component scores. The final sheet includes S1/S3/S4, not S2. This confirms three contributing assessments across four session tabs; it does not prove the precise timing or completion of every activity. Some total-column headers still say “Session 2” in other tabs, so use tab names and criteria together. Combining S2 work into S3 is an inference, not an established classroom record.
 - Historical criteria broadly align with current Lab 42, Lab 52/lesson 60 operations, and Lab 62 design. Do not transfer old weights, scores, or deadlines to the current cohort.
@@ -25,7 +25,7 @@ Use Lab 52 as the practical source of truth. Reopen the existing VM, namespace, 
 | 140–210 min | Continue practical work, persistence verification, current-system diagrams, and individual reviews. |
 | 210–240 min | Save/commit/push evidence, explain boundaries, and record the next checkpoint. |
 
-Do not deliver the entire deck before lab time. Keep its opening to about five minutes within the initial check-in. Use the later discussion for 15–20 minutes after students have worked on their own database; shorten it if common blockers need more support. Rollout commands are reading examples, not a new required execution task. A live demo can be considered later after preparation and rehearsal.
+Do not deliver the entire deck before lab time. Keep its opening to about five minutes within the initial check-in. Use the later discussion for 15–20 minutes after students have worked on their own database; shorten it if common blockers need more support. Rollout commands are reading examples, not a new required execution task. The optional [demo guide](rs509-rollout-demo.md) includes commands and questions for readiness failure and rollback, with a five-minute baseline cutoff. It is not a dependency for the session.
 
 Check four concrete outcomes:
 
@@ -75,3 +75,9 @@ These checks validate content rendering and syntax, not the Kubernetes commands,
 ## Session 3 release checks — 16 November 2026
 
 The release build passed with 13 pages: lesson 60 is generated and listed, while Lab 62 is neither generated nor listed. Verified all 93 local href/src/srcset targets across the two rendered lesson previews and the released lesson 60 page, including fragment targets. Lab 62’s existing RES509 feedback form returned HTTP 200 and displayed its form title; this checks reachability, not response submission or cohort configuration. The repository link also resolves through the GitHub API. No feedback response was submitted. Lab 62 remains hidden until the final-session release.
+
+## Instructor follow-up - 16 November 2026
+
+Added the short rollout demo guide, restored the abstraction-layer diagram alongside the failure-boundary slide in lesson 60, and defined PersistentVolumeClaim before the checkpoint discussion. Lab 52 still requires `labs/52-architecture/architecture-notes.md` with an actual-system diagram, concise evidence, boundary notes, and next action. No Lab 52 requirements or publication flags changed. Runtime rehearsal remains pending.
+
+Follow-up checks: `pnpm build` passed (13 pages), `pnpm lint` passed, demo Bash fences passed `bash -n`, and documentation links/whitespace checks passed. Inspected all 17 lesson 60 slides at 1280 × 720, including the restored diagram and PVC definition; after shortening the diagram commentary, no viewport overflow or browser page errors were measured. Generated local link/asset checks passed; Lab 62 remains excluded. These checks do not validate the live Kubernetes demonstration.

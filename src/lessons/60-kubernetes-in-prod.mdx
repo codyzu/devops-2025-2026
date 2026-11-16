@@ -40,6 +40,16 @@ flowchart TD
 _Kubernetes continuously reconciles desired state with actual state._
 </section>
 
+<section class="title-center-body-left">
+## <Icon name="i-tabler-database" />PVC: PersistentVolumeClaim
+
+- A PVC requests persistent storage for a workload
+- **Bound** means it is linked to a PersistentVolume (PV)
+- The database Pod mounts that volume using its claim
+- Replace the Pod, reuse the claim: data can survive
+- Our local-path volume lives on the VM’s disk; it is not a backup
+</section>
+
 <section>
 ## <Icon name="i-tabler-question-mark" />Interactive Question
 
@@ -91,6 +101,32 @@ The following examples are for discussion; no live demo or new rollout exercise 
 <p class="block-title">Production impact:</p>
 - One controls traffic
 - One controls restarts
+</section>
+
+<section>
+## <Icon name="i-tabler-stack-2" />Layers of abstraction
+
+<div class="flex gap-8 items-center">
+<Mermaid class="w-1/2" chart={String.raw`
+%%{init: {"flowchart": {"nodeSpacing": 12, "rankSpacing": 12, "padding": 2}, "themeVariables": {"fontSize": "18px"}}}%%
+flowchart TD
+  U[User] -. request .-> S[Service]
+  S -. selects .-> P[Pod]
+  P -->|groups| C[Container]
+  C -->|shares| O[Guest kernel / node OS]
+  O -->|runs in| V[Ubuntu VM / node]
+  V -->|provided by| H[Hypervisor]
+  H -->|runs on| B[Hardware]
+`} />
+<div class="w-1/2 text-left">
+
+- Which layer explains the symptom?
+- Dashed: request routing
+- Solid: workload/infrastructure relationships
+
+Lower layers support execution; they are not network hops.
+</div>
+</div>
 </section>
 
 <section class="title-center-body-left">
