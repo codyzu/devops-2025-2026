@@ -8,56 +8,47 @@ published: true
 {/*
 - This lab feels a bit to heavy on the questions and a bit too LLM-like. Revise it to be more structured and less on-and-on...
 - Make all questions h3 level. That's how 62 works and it's nice.
-Session 2 revision: guided checkpoints, one current-system diagram, short evidence, and oral prompts.
+Session 2 revision: guided checkpoints, one current-system diagram, short results/notes, and oral prompts.
 Production design remains with Lab 62; optional resource/probe work reuses Lab 42 lanes.
 */}
 ## Today’s route \{.no-step\}
 
-**RES509 — Session 2 (session 5 overall).** Finish the Kubernetes core, connect your app to persistent storage, and explain the layers underneath it.
+**RES509 - Sessions 2 and 3.** Connect your app to persistent storage and explain the layers underneath it. In session 3, resume from your last working checkpoint and finish the database checks, diagram, and notes. The final architecture challenge, Lab 62, is reserved for session 4.
 
 Start with the [Lab 42 restart checklist](/lessons/42-kubernetes-deployment-runtime-validation/#restart-checklist-). If you are blocked, use its [troubleshooting sheet](/lessons/42-kubernetes-deployment-runtime-validation/#troubleshooting-sheet-) and show your first missing checkpoint at the opening check-in.
 
 | Your current checkpoint | Your next action |
 | --- | --- |
 | Cluster, image, deployment, or access is not working | Resume that section of Lab 42 with instructor support. |
-| App is accessible, but scaling or readiness failure/recovery is unfinished | Finish those Lab 42 core checks and save the evidence. |
+| App is accessible, but scaling or readiness failure/recovery is unfinished | Finish those Lab 42 core checks and save the results. |
 | Lab 42 core is verified | Begin the guided PostgreSQL setup below. No extension is required to enter this lab. |
 | Database extension already works | Reuse it; verify quote insertion and persistence, then map the architecture. |
 
 Keep your own fork and existing work. A partner may help diagnose a problem, but demonstrate the result on your own VM. The Lab 42 extension remains part of its later assessment; the database work here can satisfy that lane when its verification is complete.
 
-### Our four hours \{.no-step\}
+### Working at your current checkpoint \{.no-step\}
 
-| Time from start | Activity |
-| --- | --- |
-| 0–15 min | Reopen your work and identify your first missing checkpoint. |
-| 15–30 min | Focused demonstration of a common blocker and the next diagnostic check. |
-| 30–95 min | Finish Lab 42 core; students with verified core work begin PostgreSQL. |
-| 95–110 min | Break and buffer. |
-| 110–130 min | Architecture discussion with lesson 50: Pods, containers, VMs, and failure boundaries. |
-| 130–205 min | Guided database work, or continued supported Lab 42 recovery. |
-| 205–225 min | Verify results and draw the current architecture. |
-| 225–240 min | Save evidence, commit working files, and agree your next action. |
+Use the opening check-in to show what already works and identify your next task. Spend most of the session on the database setup and persistence checks, then finish your diagram and notes. Join the short lesson 60 discussion after the first work block and break; return to your lab afterwards.
 
-These are work blocks, not a deadline to complete every task. Join the architecture discussion at your current checkpoint. If the class needs more recovery time, the instructor will demonstrate database persistence; record it as observed, with your own database work still pending. A demonstration is not individual completion evidence.
+If Lab 42 core is still unfinished, complete it with instructor support before adding database configuration. If you watch an instructor demonstration, mark it as observed and keep your own unfinished checks listed as pending.
 
-### Session evidence and stopping points \{.no-step\}
+### What to finish and save \{.no-step\}
 
-Keep the evidence small. Your target after verifying the Lab 42 core is:
+After verifying the Lab 42 core, complete these checks and save a few results in your notes:
 
 - [ ] PostgreSQL has a Bound PVC and a Ready Pod; manifests reference a Secret without committing its values.
 - [ ] A distinct quote inserted through your app is still retrievable after database Pod replacement using the same PVC.
 - [ ] A diagram of your **actual** setup is linked or embedded in `labs/52-architecture/architecture-notes.md`.
 - [ ] Three brief notes explain the shared kernel, persistence boundary, and next unresolved task or main limitation.
-- [ ] Working manifests and selected evidence are committed and pushed in your own fork.
+- [ ] Working manifests, your diagram, and short notes with selected command output or screenshots are committed and pushed in your own fork.
 
-Keep Lab 42 failure/recovery evidence where it is and link to it. You do not need a second readiness failure, a five-row comparison table, or a production design report today. Resource limits, liveness experiments, and production rollouts are later work or optional extensions after today's checks. Final production architecture design belongs with Lab 62.
+Link to your existing Lab 42 failure/recovery results rather than copying them. You do not need a second readiness failure, a five-row comparison table, or a production design report today. Resource limits, liveness experiments, and production rollouts are later work or optional extensions after today's checks. Final production architecture design belongs with Lab 62.
 
 If you finish only part of this route, save the last successful result, the blocker, and one next action. Agree the next checkpoint with the instructor before leaving; do not label unfinished work complete.
 
 ## Verify your handoff
 
-Show the instructor the core handoff listed in Lab 42's restart checklist: both health paths, three Ready replicas, Pod replacement, and readiness failure/recovery with saved manifests and evidence. Explain one observation. Move forward after that check-in; an extension is not an entry requirement.
+Show the instructor the core handoff listed in Lab 42's restart checklist: both health paths, three Ready replicas, Pod replacement, and readiness failure/recovery with saved manifests and results. Explain one observation. Move forward after that check-in; an extension is not an entry requirement.
 
 Run all commands below **inside your course Ubuntu VM**, from your own fork. Replace `POD_NAME` in diagnostic commands with an actual Pod name. Select the lab namespace:
 
@@ -291,22 +282,22 @@ Use your Lab 42 Pod replacement and the database persistence observation. Explai
 
 Add one sentence about that storage/failure boundary. Keep production backup and multi-node design as future work, rather than claiming your teaching cluster already provides them.
 
-## Save concise evidence and your next action
+## Save your results and notes
 
 In `architecture-notes.md`, keep:
 
-- A link to your existing Lab 42 verification evidence.
+- A link to your existing Lab 42 test results.
 - The database check results: Bound PVC, old/new database Pod names, and the quote marker retrieved before and after replacement. If incomplete, record the last successful checkpoint and actual blocker instead.
 - Your diagram and the two short boundary notes above.
 - One next action, or your main remaining limitation if today's checks pass.
 
 Keep database manifests and the initialization ConfigMap in `labs/52-architecture`; keep the updated app manifest in `labs/42-kubernetes`. Commit Secret **references**, never Secret exports, kubeconfig, or passwords. Secret base64 encoding is not encryption.
 
-Review the selected files and Git diff before committing and pushing. Explain the results orally; you do not need an answer to every discussion prompt.
+Review the selected files and Git diff before committing and pushing. Use a few lines of command output or a screenshot for each check; whole logs are unnecessary. Explain the results orally; you do not need a written answer to every discussion prompt.
 
 ### Check out with the instructor
 
-Show what works on your VM, identify anything still pending, and agree your next checkpoint. If the database worked already, reuse that verification for Lab 42's database extension; link to the same evidence rather than producing a second report.
+Show what works on your VM, identify anything still pending, and agree your next checkpoint. If the database worked already, reuse that verification for Lab 42's database extension; link to the same results rather than producing a second report.
 
 ## Continue when ready \{.no-step\}
 
@@ -318,4 +309,4 @@ After today's database and diagram checks, choose **one** continuation if time p
 
 Reuse completed extensions. You do not have to complete every lane. Follow the detailed instructions in [Lab 42](/lessons/42-kubernetes-deployment-runtime-validation/); no new extension requirement is added here.
 
-Controlled version changes and rollback continue with lesson 60 when released. The larger production architecture challenge belongs to Lab 62. The instructor will confirm the remaining scope after today's check-ins; deferred activities are not an additional end-of-session checklist.
+Lesson 60 supports session 3 with a short discussion of controlled changes and rollback. Lab 62 is the production architecture challenge for session 4, our final session. Finish this lab’s checks, diagram, and notes before adding optional work.

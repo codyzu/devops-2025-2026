@@ -81,3 +81,9 @@ The release build passed with 13 pages: lesson 60 is generated and listed, while
 Added the short rollout demo guide, restored the abstraction-layer diagram alongside the failure-boundary slide in lesson 60, and defined PersistentVolumeClaim before the checkpoint discussion. Lab 52 still requires `labs/52-architecture/architecture-notes.md` with an actual-system diagram, concise evidence, boundary notes, and next action. No Lab 52 requirements or publication flags changed. Runtime rehearsal remains pending.
 
 Follow-up checks: `pnpm build` passed (13 pages), `pnpm lint` passed, demo Bash fences passed `bash -n`, and documentation links/whitespace checks passed. Inspected all 17 lesson 60 slides at 1280 × 720, including the restored diagram and PVC definition; after shortening the diagram commentary, no viewport overflow or browser page errors were measured. Generated local link/asset checks passed; Lab 62 remains excluded. These checks do not validate the live Kubernetes demonstration.
+
+## Lab 52 student instructions - 16 November 2026
+
+Lab 52 now names sessions 2–3, uses results/notes instead of repeated “evidence,” and removes its old session 2 timetable. Use this document’s session 3 timing; the student lab instead asks learners to resume at their current checkpoint and join the later lesson 60 discussion. Saved results remain a few command-output lines or screenshots, with the same database checks, actual-system diagram, and concise notes. No new report or assessment requirement is added.
+
+Validation: `pnpm build` passed (13 pages); rendered Lab 52 local links, fragment targets, unnumbered headings, documentation links, and `git diff --check` passed. No commands or manifests changed, and no additional cluster test was performed.
