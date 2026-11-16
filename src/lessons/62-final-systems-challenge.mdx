@@ -3,12 +3,13 @@ title: "62 Final Systems Challenge"
 slug: "62-final-systems-challenge"
 description: "Analyze a flawed deployment and design a production-ready architecture."
 type: lab
-availableFrom: 2026-02-12T13:00:00+01:00
 published: false
 ---
 import Mermaid from '../components/Mermaid.astro';
 
 ## Introduction \{.no-step\}
+
+**RES509 — Session 4, the final session.** Use Lab 52’s actual-system diagram and lesson 60’s discussion to design an improved architecture. Session 3 is reserved for finishing and verifying Lab 52.
 
 In this final lab you will step back from writing YAML and think like a systems engineer.
 
@@ -24,7 +25,9 @@ Your goal is to show that you understand how the pieces we studied fit together:
 
 This is intentionally open‑ended. There is no single correct answer.
 
-What matters is your reasoning and your ability to explain your design clearly.
+What matters is your reasoning and your ability to explain your design clearly. No new cluster or application implementation is required. Label what you have verified in your own lab and what you are proposing. If Lab 52 is incomplete, record that boundary and agree the remaining practical checkpoint with the instructor; you can still analyze the scenario.
+
+Keep one concise document and one diagram. Use bullets or a small table; the questions below guide discussion and oral review, rather than requiring a separate written answer to each one.
 
 ---
 
@@ -55,23 +58,24 @@ If it is not in your repository, it cannot be graded.
 
 A small startup deployed the Quote API using Kubernetes.
 
-The current system has the following characteristics:
+This fictional system is deliberately different from the corrected Lab 52 setup. It has the following characteristics:
 
 <Mermaid class="" chart={String.raw`
 flowchart TD
   U[Users] --> I[Ingress or NodePort]
   I --> P[Single Pod: quote-api + postgres in same container]
-  P --> E[Plaintext env vars for secrets]
+  P --> E[Credentials committed in manifest]
   P --> N[Single node dependency]
   P --> R[No probes, no limits]
 `} />
 
 - A single Pod runs the application
-- The PostgreSQL database runs inside the same container
+- The PostgreSQL database runs inside the same container, storing data in its writable container layer
 - There are no readiness or liveness probes
 - There are no resource limits
-- Deployments replace pods immediately
-- Secrets are stored in plain text environment variables
+- The app uses a Recreate update strategy: old Pods are stopped before replacements become available
+- Database credentials are literal environment values committed in the manifest
+- The node and its disk are single points of failure; there is no tested backup/restore procedure
 
 The team believes the system is production ready.
 
@@ -83,7 +87,7 @@ Your task is to evaluate this architecture and redesign it so it could realistic
 
 Create a section in `final-architecture.md` titled:
 
-```
+```text
 Current System Problems
 ```
 
@@ -112,17 +116,7 @@ Identify several problems with the current design (at least three).
 > - resource management
 > - secrets handling
 
-### What is the problem?
-
-Describe the architectural issue you see.
-
-### Why does it matter?
-
-Explain why this problem is important in a real production system.
-
-### What failure or operational risk could it cause?
-
-Describe what could break or become difficult to operate if this issue is not fixed.
+For each problem, give the issue, its consequence, and a proposed fix in one short bullet or table row. Be ready to explain the reasoning orally.
 
 ---
 
@@ -130,7 +124,7 @@ Describe what could break or become difficult to operate if this issue is not fi
 
 Create a new section in `final-architecture.md`:
 
-```
+```text
 Production Architecture
 ```
 
@@ -142,9 +136,13 @@ Your design should include:
 - A Service exposing the application
 - A PostgreSQL database with persistent storage
 - Multiple application replicas
-- A safe rollout strategy
+- A safe app rollout strategy
+- Secret references with a way to provision credentials without committing them
+- Explicit VM/node and storage failure boundaries, including backup and restore
 
-Create an **architecture diagram** that shows:
+Explain what happens if a Pod fails and if the VM or disk is lost. Distinguish availability from data recovery: a PVC alone is not a backup, and multiple replicas on one node do not remove that node dependency.
+
+Reuse and annotate your Lab 52 diagram, or create a new **architecture diagram** that shows:
 
 - users
 - Kubernetes services
@@ -160,7 +158,7 @@ Consider using:
 - diagrams.net
 - hand-drawn diagram exported as PNG
 
-Embed or link the diagram in `final-architecture.md`.
+Embed or link the diagram in `final-architecture.md`. Mark the proposed changes clearly; you do not need to redraw verified parts of Lab 52.
 
 ---
 
@@ -169,9 +167,11 @@ Embed or link the diagram in `final-architecture.md`.
 
 Add a section titled:
 
-```
+```text
 Operational Strategy
 ```
+
+Keep a few operational bullets covering the prompts below; explain details during your presentation.
 
 ### How does the system scale?
 
@@ -179,7 +179,7 @@ Explain how your design handles increased traffic and load.
 
 ### How are updates deployed safely?
 
-Describe the rollout strategy you would use.
+Describe the app rollout strategy and how you would verify or roll back a bad version. Explain why Deployment rollback does not restore database contents or reverse a schema migration.
 
 ### How are failures detected?
 
@@ -187,7 +187,7 @@ Explain what mechanisms detect unhealthy pods or services.
 
 ### Which Kubernetes controllers handle recovery?
 
-Identify which controllers recreate or stabilize components when failures occur.
+Identify which controllers recreate or stabilize components when failures occur. Explain what still needs a backup/restore process or infrastructure recovery beyond those controllers.
 
 ---
 
@@ -195,7 +195,7 @@ Identify which controllers recreate or stabilize components when failures occur.
 
 Add a section titled:
 
-```
+```text
 Weakest Point
 ```
 
@@ -212,7 +212,7 @@ Before presenting, make sure your repository contains:
 
 - `final-architecture.md`
 - an architecture diagram
-- clear written reasoning
+- concise risks, decisions, operational notes, and remaining weakness
 - committed and pushed changes
 
 If it is not in your repository, it cannot be graded.
@@ -221,7 +221,7 @@ If it is not in your repository, it cannot be graded.
 
 ## Presentation
 
-Each student will briefly present their design.
+Each student will briefly present their design. The instructor will organize short individual reviews during work time or a presentation block so everyone has time to explain their choices.
 
 You should be able to explain:
 
@@ -236,7 +236,7 @@ Be prepared to answer follow-up questions about your design decisions.
 
 ## Optional stretch thinking \{.no-step\}
 
-If you finish early, you may add short answers to the following questions in your notes.
+If you finish early, choose one question to discuss or add a short note. No separate report is required.
 
 ### What would break first under **10× traffic**?
 

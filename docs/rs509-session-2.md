@@ -55,3 +55,7 @@ Before session 3, adapt lessons 60/62 to these checkpoints. Do not automatically
 Enabled lessons 50/52 for publication and removed their historical availability dates. The instructor plans to proceed without the full teaching-VM dry run; runtime behavior remains unverified. The opening check-in and fallback in this plan still apply.
 
 Release checks: `pnpm build` passed with 12 generated pages; `pnpm lint`, generated lesson/anchor checks, and `git diff --check` passed. The restricted build again reported the Google Fonts fetch warning.
+
+## Follow-up — 16 November 2026
+
+The instructor confirmed four RS509 sessions. The current assessment sheet supports one noted Lab 52 completion but does not locate all learners’ technical checkpoints. Session 3 on 17 November prioritizes Lab 52 completion and verification; Lab 62 is reserved for the fourth and final session. See the [sessions 3–4 plan](rs509-sessions-3-4.md). This supersedes the provisional remaining-scope discussion above, not the recorded session 2 preparation or its validation limits.
