@@ -11,7 +11,7 @@ Progression review: 16 November 2026; earlier source reviews remain dated in the
 | RS509 — Virtualisation avancée | [40](../src/lessons/40-kubernetes.mdx), [42](../src/lessons/42-kubernetes.mdx) | Day 1 / session 4 overall: single-node k3s, Deployment, Service, scaling, Pod replacement, readiness failure/recovery |
 | RS509 | [50](../src/lessons/50-architecture.mdx), [52](../src/lessons/52-architecture.mdx) | Day 2 / session 5 overall: finish Lab 42 core, guided database integration, current-system diagram, containers/VMs and failure boundaries |
 | RS509 | [52](../src/lessons/52-architecture.mdx), [60](../src/lessons/60-kubernetes-in-prod.mdx) | Session 3 / session 6 overall: finish and verify Lab 52; brief opening recap and later controlled-change discussion |
-| RS509 | [62](../src/lessons/62-final-systems-challenge.mdx) | Session 4 / session 7 overall, final session: architecture redesign, tradeoffs, individual oral review, feedback |
+| RS509 | [62](../src/lessons/62-final-systems-challenge.mdx) | Session 4 / session 7 overall, final session: opening Lab 52 grading, followed by architecture redesign, individual oral review, and feedback |
 
 RS509 has four sessions. Lesson numbers identify content, not one lesson pair per session: Lab 52 spans sessions 2–3, and Lab 62 is reserved for session 4. See the [sessions 3–4 plan](rs509-sessions-3-4.md) for timing and evidence.
 
@@ -43,7 +43,7 @@ Preserve the existing application, hands-on format, short explanations, autonomy
 - `src/components/LessonList.astro`: published listing and browser-side availability filtering. `src/lib/paths.ts`: base-aware links.
 - `.github/workflows/astro.yml`: deployment workflow; inspect before changing deployment.
 
-For the 16 November 2026 session 3 release, lessons through 60 are published; Lab 62 retains `published: false` until the fourth and final session. Lessons 50/52 and 62 no longer carry historical availability dates.
+Lab 62 is enabled for the fourth and final session on 26 November 2026. Lessons 50/52 and 62 no longer carry historical availability dates.
 
 Routes use collection entry **IDs**; Astro’s glob loader uses a frontmatter `slug` as the ID override when present. The build generates Lab 42 at `/lessons/42-kubernetes-deployment-runtime-validation/` and Lab 52 at `/lessons/52-architecture-production-design/` when published. Use generated routes when checking links. Only published entries get routes. `availableFrom` hides future items in the browser listing; it does not prevent direct access to generated routes and is not access control. Keep output static.
 

@@ -3,54 +3,26 @@ title: "62 Final Systems Challenge"
 slug: "62-final-systems-challenge"
 description: "Analyze a flawed deployment and design a production-ready architecture."
 type: lab
-published: false
+published: true
 ---
 import Mermaid from '../components/Mermaid.astro';
 
 ## Introduction \{.no-step\}
 
-**RES509 — Session 4, the final session.** Use Lab 52’s actual-system diagram and lesson 60’s discussion to design an improved architecture. Session 3 is reserved for finishing and verifying Lab 52.
+**RES509, session 4.** Have your Lab 52 VM, repository, and architecture notes ready at the start for your individual review. While waiting, read the scenario and sketch your Lab 62 design. You can start the design with unfinished Lab 52 work. Reuse your Lab 52 diagram if you have one, or sketch from the fictional scenario below.
 
-In this final lab you will step back from writing YAML and think like a systems engineer.
-
-Instead of implementing features, you will analyze a flawed system and redesign it so it could realistically run in production.
-
-Your goal is to show that you understand how the pieces we studied fit together:
-- containers
-- Kubernetes
-- deployments
-- services
-- persistence
-- failure handling
-
-This is intentionally open‑ended. There is no single correct answer.
-
-What matters is your reasoning and your ability to explain your design clearly. No new cluster or application implementation is required. Label what you have verified in your own lab and what you are proposing. If Lab 52 is incomplete, record that boundary and agree the remaining practical checkpoint with the instructor; you can still analyze the scenario.
-
-Keep one concise document and one diagram. Use bullets or a small table; the questions below guide discussion and oral review, rather than requiring a separate written answer to each one.
+Design an improved system on paper or digitally. This exercise requires a design and a short explanation. You can do both without a running cluster. Label proposed changes and any parts you verified in your own lab.
 
 ---
 
 ## Submission checklist \{.no-step\}
-<div class="bg-red-500/10 border border-red-500/30 rounded-lg p-6 my-4">
+Create one concise `final-architecture.md` in your repository. Include:
 
-🚨 **Read this section before continuing.**  
-This clarifies how the final lab will be evaluated.
+- At least three risks in the original system, with a consequence and a proposed fix for each.
+- One proposed architecture diagram, embedded or linked.
+- A few operational notes and one remaining weakness with its tradeoff.
 
-Your repository must contain:
-
-- [ ] A file named `final-architecture.md`
-- [ ] A section identifying the **problems in the original architecture**
-- [ ] A **production architecture design**
-- [ ] An **architecture diagram** (PNG, Draw.io export, or image file)
-- [ ] The diagram embedded in or clearly linked from `final-architecture.md`
-- [ ] A short **operational strategy explanation**
-- [ ] A **weakest point reflection**
-
-Everything must be committed and pushed to GitHub.
-
-If it is not in your repository, it cannot be graded.
-</div>
+Commit and push the file and diagram. Use the prompts below to prepare for your oral review.
 
 ---
 
@@ -206,31 +178,9 @@ Identify where your design would fail first under stress.
 
 ---
 
-## Deliverables
-
-Before presenting, make sure your repository contains:
-
-- `final-architecture.md`
-- an architecture diagram
-- concise risks, decisions, operational notes, and remaining weakness
-- committed and pushed changes
-
-If it is not in your repository, it cannot be graded.
-
----
-
 ## Presentation
 
-Each student will briefly present their design. The instructor will organize short individual reviews during work time or a presentation block so everyone has time to explain their choices.
-
-You should be able to explain:
-
-- your architecture diagram
-- the main problems in the original system
-- how your redesign improves reliability
-- how Kubernetes manages failures
-
-Be prepared to answer follow-up questions about your design decisions.
+Have your design open for a short individual review. Use the diagram to walk through a user request, explain one change and its tradeoff, and describe what you would do if a Pod failed or the VM and disk were lost. Be ready to explain how you would detect a bad rollout and decide whether to roll back the app or restore data.
 
 ---
 
@@ -266,6 +216,4 @@ This final exercise focuses on **reasoning, architecture, and systems thinking**
 
 If you have a few minutes, please share feedback about this course.
 
-Your responses are anonymous and help improve future sessions.
-
-https://docs.google.com/forms/d/e/1FAIpQLSdKoFpI0_JAO4eVEYr9syE19Ddm9U60rC2vFAfqm3ZJcWtqNQ/viewform?usp=publish-editor
+[Open the RS509 course feedback form](https://docs.google.com/forms/d/e/1FAIpQLSdKoFpI0_JAO4eVEYr9syE19Ddm9U60rC2vFAfqm3ZJcWtqNQ/viewform?usp=publish-editor).

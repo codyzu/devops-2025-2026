@@ -42,22 +42,24 @@ At exit, record aggregate checkpoint counts and blocker categories. Keep individ
 
 ## Session 4: final architecture challenge
 
-Lab 62 asks learners to improve a fictional flawed system. Lab 52 records what exists; Lab 62 proposes what should change. The final challenge does not require implementing a new production cluster.
+Final session: Thursday morning, 26 November 2026. The instructor reports that some learners still have unfinished Lab 52 work and has asked everyone to be ready for grading at the start. The number of remaining reviews should come from the private grade sheet and attendance on the day.
 
-Suggested four-hour structure:
-
-| Time | Activity |
+| Time from start | Activity |
 | --- | --- |
-| 0–15 min | Introduce the scenario, concise deliverables, and review process. Clarify any pending practical evidence. |
-| 15–100 min | Analyze risks and design improvements; reuse and annotate the Lab 52 diagram. |
+| 0–10 min | Have students open their VM, fork, and Lab 52 notes. Explain the review queue and give a short Lab 62 brief. Start calling students as soon as they are ready. |
+| 10–100 min | Grade outstanding Lab 52 work individually. Everyone else starts Lab 62 from its fictional scenario or adapts their own diagram. |
 | 100–115 min | Break and buffer. |
-| 115–210 min | Short individual oral reviews while others refine their designs. With 23 learners, budget roughly four minutes each including transitions. |
-| 210–225 min | Complete commits and identify any still-pending evidence. |
-| 225–240 min | Common lessons, course feedback, and closeout. |
+| 115–120 min | Check who has three risks, a draft diagram, and a recovery plan. Call students whose designs are ready first. |
+| 120–235 min | Start Lab 62 reviews by the two-hour mark. Students can finish or push their designs while waiting. Fit outstanding Lab 52 reviews into gaps. |
+| 235–240 min | Confirm submissions, share the feedback form, and close. |
 
-Retain Lab 62’s core: at least three risks with consequences/fixes, proposed architecture, operational strategy, remaining weakness, and oral explanation. Keep one concise `final-architecture.md` and one linked/embedded diagram. Distinguish verified components from proposed changes. Discuss Pod versus VM/disk loss, backups/restore, and app rollout versus database recovery. Questions guide reasoning; they do not each require a separate written response.
+Plan on roughly four minutes per Lab 52 review, including transition. A 90-minute block covers about 22 reviews at that pace. Skip grades already recorded. If a check is blocked, ask the student to show saved results and the last working checkpoint, apply the existing rubric to what they can demonstrate, and note the remaining gap privately. Ask about quote insertion and retrieval, persistence across database Pod replacement, Secret references and committed notes, and the diagram's kernel and storage boundaries. See the [Lab 52 grading sheet](https://docs.google.com/spreadsheets/d/16VwDhgWoH5dUIq6UDpU67ybxEvTYngf61jtuHfdLflI/edit#gid=1984367782) for the 6/6/4/4 rubric.
 
-Learners with unfinished Lab 52 can analyze the scenario while clearly recording their implementation limits; agree the remaining practical checkpoint separately. Do not invent a new deadline or treat the design exercise as proof of completed runtime work. Confirm assessment arrangements before the final session.
+For Lab 62, ask students to trace a request on their proposed diagram, defend one improvement and its tradeoff, and explain recovery after Pod failure versus VM/disk loss. Use one follow-up about app rollback or data restore. Check that their committed `final-architecture.md` contains the diagram, three risks with consequences and fixes, operational decisions, and a remaining weakness. At roughly four minutes per review, begin with students who are ready as soon as possible to leave room for transitions.
+
+Lab 62 is a design exercise that students with unfinished Lab 52 work can start independently. Record the results of each lab separately. Confirm the Lab 62 marking scale and where to record it before the reviews. The existing Lab 52 rubric is already in the sheet.
+
+Before students need the brief, enable Lab 62, build, and deploy. Check that the homepage lists it, its route opens, and the intended feedback form is ready for the current cohort.
 
 ## Implementation, release, and validation
 
